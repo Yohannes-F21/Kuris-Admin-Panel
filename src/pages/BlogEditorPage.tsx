@@ -1,12 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Image, Save } from "lucide-react";
 import ReactQuill from "react-quill";
+
 import "react-quill/dist/quill.snow.css";
+// import "~/react-quill/dist/quill.snow.css";
+// import "react-quill/dist/quill.snow.css";
+// import "quill/dist/quill.snow.css";
+
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import toast from "react-hot-toast";
+// import { app } from "../FirebaseConfig";
+// import { getDatabase, ref, set, push } from "firebase/database";
 const categories = [
   "Pregnancy",
   "Postpartum",
@@ -68,41 +75,44 @@ export function BlogEditorPage() {
             onChange={(e) => setTitle(e.target.value)}
             className="text-2xl font-semibold"
           />
-          <div className="prose max-w-none">
-            <ReactQuill
-              value={content}
-              onChange={setContent}
-              className="h-[500px] mb-12"
-              theme="snow"
-              modules={{
-                toolbar: [
-                  [
-                    {
-                      header: [1, 2, 3, false],
-                    },
+          <div className="prose max-w-none ">
+            <div className="h-[500px] mb-12">
+              <ReactQuill
+                value={content}
+                onChange={setContent}
+                // className="h-[500px] mb-12"
+
+                theme="snow"
+                modules={{
+                  toolbar: [
+                    [
+                      {
+                        header: [1, 2, 3, false],
+                      },
+                    ],
+                    ["bold", "italic", "underline", "strike"],
+                    [
+                      {
+                        list: "ordered",
+                      },
+                      {
+                        list: "bullet",
+                      },
+                    ],
+                    ["link", "image", "blockquote", "code-block"],
+                    [
+                      {
+                        color: [],
+                      },
+                      {
+                        background: [],
+                      },
+                    ],
+                    ["clean"],
                   ],
-                  ["bold", "italic", "underline", "strike"],
-                  [
-                    {
-                      list: "ordered",
-                    },
-                    {
-                      list: "bullet",
-                    },
-                  ],
-                  ["link", "image", "blockquote", "code-block"],
-                  [
-                    {
-                      color: [],
-                    },
-                    {
-                      background: [],
-                    },
-                  ],
-                  ["clean"],
-                ],
-              }}
-            />
+                }}
+              />
+            </div>
           </div>
         </div>
         <div className="space-y-6">
