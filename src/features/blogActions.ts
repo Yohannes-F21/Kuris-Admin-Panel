@@ -18,6 +18,8 @@ interface SearchFilterParams {
   page: number;
   startDate?: string;
   endDate?: string;
+  sort?: string;
+  isPublished?: boolean;
 }
 
 interface UpdateBlogData {
@@ -54,7 +56,8 @@ export const SearchFilterBlogs = createAsyncThunk(
   "blog/searchFilter",
   async (params: SearchFilterParams, { rejectWithValue }) => {
     try {
-      const { search, limit, page, startDate, endDate } = params;
+      const { search, limit, page, startDate, endDate, sort, isPublished } =
+        params;
       const response = await api.get(`/blogs`, {
         params: {
           search,
@@ -62,6 +65,8 @@ export const SearchFilterBlogs = createAsyncThunk(
           page,
           startDate,
           endDate,
+          sort,
+          isPublished,
         },
       });
       return response.data;

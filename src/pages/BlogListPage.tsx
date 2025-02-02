@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { Search, Edit2, Trash2 } from "lucide-react";
 import { Button } from "../components/ui/Button";
@@ -7,6 +7,8 @@ import { DeleteConfirmationModal } from "../components/blog/DeleteConfirmationMo
 import toast from "react-hot-toast";
 import axios from "axios";
 import { Blog } from "../types";
+import { SearchFilterBlogs } from "../features/blogActions";
+import { useAppDispatch } from "../features/hooks";
 
 export const loader = async (): Promise<{ blogs: Blog }> => {
   const response = await axios({
@@ -20,10 +22,50 @@ export const loader = async (): Promise<{ blogs: Blog }> => {
 
   return { blogs };
 };
+
+interface SearchFilterParams {
+  search: string;
+  limit: number;
+  page: number;
+  isPublished?: boolean;
+  sort?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export function BlogListPage() {
   const navigate = useNavigate();
   const { blogs } = useLoaderData();
   console.log(blogs);
+  const dispatch = useAppDispatch();
+
+  const fetchBlogs = async ({
+    search,
+    limit,
+    page,
+    isPublished,
+    sort,
+    startDate,
+    endDate,
+  }: SearchFilterParams) => {
+    dispatch(
+      SearchFilterBlogs({
+        search,
+        limit,
+        page,
+        isPublished,
+        sort,
+        startDate,
+        endDate,
+      })
+    ).then((response) => {
+      console.log(response);
+    });
+  };
+
+  useEffect(() => {
+    fetchBlogs({ search: "", limit: 10, page: 1, sort: "" });
+  }, []);
 
   const handleEdit = (id: string) => {
     navigate(`/edit-blog/${id}`);
