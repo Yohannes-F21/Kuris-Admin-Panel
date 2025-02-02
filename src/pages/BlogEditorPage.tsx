@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Image, Save } from "lucide-react";
 import ReactQuill from "react-quill";
 
@@ -10,26 +10,78 @@ import "react-quill/dist/quill.snow.css";
 
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import { Select } from "../components/ui/Select";
 import toast from "react-hot-toast";
-// import { app } from "../FirebaseConfig";
-// import { getDatabase, ref, set, push } from "firebase/database";
-const categories = [
-  "Pregnancy",
-  "Postpartum",
-  "Baby Health",
-  "Mental Health",
-  "Nutrition",
-  "Exercise",
-];
+import { useAppDispatch } from "../features/hooks";
+import { UpdateBlog, GetBlog } from "../features/blogActions";
+import moment from "moment";
+
 export function BlogEditorPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { id } = useParams<{ id: string }>();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("");
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [changeImage, setChangeImage] = useState(false);
+  const url = "https://kuri-backend-ub77.onrender.com";
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    const savedContent = localStorage.getItem("blogContent");
+    const parsedContent = savedContent ? JSON.parse(savedContent) : null;
+    console.log(savedContent);
+    if (id) {
+      setIsEditing(true);
+      dispatch(GetBlog({ _id: id })).then((response) => {
+        if (response.meta.requestStatus === "fulfilled") {
+          const { blog } = response.payload;
+          console.log(blog, "the blog");
+          console.log(blog.title, blog.content, "blog");
+          if (parsedContent?.id === id) {
+            const { title, content, thumbnailPreview } = parsedContent;
+            console.log(thumbnailPreview, "thumb from localstorage");
+            if (blog.thumbnail === thumbnailPreview) {
+              setChangeImage(false);
+              let thumbnailPrev = url + "/" + blog.thumbnail;
+              setThumbnailPreview(thumbnailPrev);
+            } else if (
+              thumbnailPreview !== "" &&
+              blog.thumbnail !== thumbnailPreview
+            ) {
+              setChangeImage(true);
+              setThumbnailPreview(thumbnailPreview);
+            } else if (blog.thumbnail === null && thumbnailPreview === "") {
+              setChangeImage(true);
+              let thumbnailPrev =
+                "https://placehold.co/600x400?text=Cover+Image";
+              setThumbnailPreview(thumbnailPrev);
+            }
+            setTitle(title || "");
+            setContent(content || "");
+          } else {
+            setTitle(blog.title || "");
+            setContent(blog.content || "");
+            setThumbnailPreview(
+              blog.thumbnail
+                ? url + "/" + blog.thumbnail
+                : "https://placehold.co/600x400?text=Cover+Image"
+            );
+          }
+
+          // console.log(title, content, thumbnailPreview);
+        } else {
+          toast.error("Failed to fetch blog data");
+        }
+      });
+    }
+
+    return () => {
+      localStorage.removeItem("blogContent");
+    };
+  }, [id, dispatch]);
+
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -41,48 +93,100 @@ export function BlogEditorPage() {
       reader.readAsDataURL(file);
     }
   };
-  const handleSave = (isDraft: boolean) => {
-    // In a real app, this would save to your backend
-    toast.success(
-      `Blog ${isDraft ? "saved as draft" : "published"} successfully!`
-    );
-    navigate("/blogs");
+
+  // useEffect(() => {
+  //   const savedContent = localStorage.getItem("blogContent");
+
+  //   const parsedContent = savedContent ? JSON.parse(savedContent) : null;
+  //   if (parsedContent?.id === id) {
+  //     const { title, content } = JSON.parse(parsedContent);
+  //     setTitle(title);
+  //     setContent(content);
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      localStorage.setItem(
+        "blogContent",
+        JSON.stringify({ title, content, thumbnailPreview, id })
+      );
+      setTime(moment().format("HH:mm:ss"));
+    }, 5000); // Save every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [title, content, thumbnailPreview]);
+
+  const handleSave = async (isDraft: boolean) => {
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("content", content);
+    if (thumbnail) {
+      formData.append("thumbnail", thumbnail);
+    }
+    formData.append("isPublished", (!isDraft).toString());
+    console.log(formData.get("thumbnail"), "formData");
+
+    try {
+      if (id) {
+        const response = await dispatch(UpdateBlog({ formData, _id: id }));
+        if (response.meta.requestStatus === "fulfilled") {
+          toast.success(
+            `Blog ${isDraft ? "saved as draft" : "published"} successfully!`
+          );
+          // navigate("/blogs");
+        } else {
+          toast.error("Failed to save blog");
+        }
+      } else {
+        toast.error("Blog ID is missing.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred.");
+    }
   };
+
   return (
-    <div className="space-y-6">
-      <div className="flex-row gap-5 md:flex justify-end items-center md:justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/blogs")}>
+    <div className='space-y-6'>
+      <div className='flex-row gap-5 md:flex justify-end items-center md:justify-between'>
+        <div className='flex items-center space-x-4'>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => navigate("/blogs")}>
             <ArrowLeft size={20} />
           </Button>
-          <h1 className="text-lg md:text-2xl font-bold">Create New Blog</h1>
+          <h1 className='text-lg md:text-2xl font-bold'>Edit Blog</h1>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={() => handleSave(true)}>
+        <div className='flex items-center space-x-3'>
+          {/* <span>Last saved checkpoint: {time}</span> */}
+
+          <Button
+            variant='outline'
+            onClick={() => handleSave(true)}>
             Save as Draft
           </Button>
           <Button onClick={() => handleSave(false)}>
-            <Save className="w-4 h-4 mr-2" />
+            <Save className='w-4 h-4 mr-2' />
             {isEditing ? "Update" : "Publish"}
           </Button>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+        <div className='lg:col-span-2 space-y-6'>
           <Input
-            placeholder="Blog Title"
+            placeholder='Blog Title'
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-2xl font-semibold"
+            className='text-2xl font-semibold'
           />
-          <div className="prose max-w-none ">
-            <div className="h-[500px] mb-12">
+          <div className='prose max-w-none '>
+            <div className='h-[500px] mb-12'>
               <ReactQuill
                 value={content}
                 onChange={setContent}
-                // className="h-[500px] mb-12"
-
-                theme="snow"
+                style={{ height: "500px" }}
+                theme='snow'
                 modules={{
                   toolbar: [
                     [
@@ -99,7 +203,7 @@ export function BlogEditorPage() {
                         list: "bullet",
                       },
                     ],
-                    ["link", "image", "blockquote", "code-block"],
+                    ["link", "blockquote", "code-block"],
                     [
                       {
                         color: [],
@@ -115,63 +219,66 @@ export function BlogEditorPage() {
             </div>
           </div>
         </div>
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+        <div className='space-y-6'>
+          <div className='bg-white rounded-lg shadow-sm p-6 space-y-6'>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Blog Settings</h3>
-              <Select
-                label="Category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
-                <option value="">Select a category</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </Select>
+              <h3 className='text-lg font-semibold mb-4'>Blog Settings</h3>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className='block text-sm font-medium mb-2'>
                 Featured Image
               </label>
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center">
-                {thumbnailPreview ? (
-                  <div className="relative">
+              <div className='border-2 border-dashed border-gray-200 rounded-lg p-4 text-center'>
+                {changeImage ? (
+                  thumbnailPreview ? (
+                    <div className='relative'>
+                      <img
+                        src={thumbnailPreview}
+                        alt='Thumbnail preview'
+                        className='w-full h-48 object-cover rounded-lg'
+                      />
+                      <Button
+                        variant='destructive'
+                        size='sm'
+                        className='absolute top-2 right-2'
+                        onClick={() => {
+                          setThumbnail(null);
+                          setThumbnailPreview("");
+                        }}>
+                        Remove
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className='cursor-pointer block'>
+                      <Input
+                        type='file'
+                        accept='image/*'
+                        className='hidden'
+                        onChange={handleThumbnailChange}
+                      />
+                      <div className='space-y-2'>
+                        <Image className='mx-auto h-12 w-12 text-gray-400' />
+                        <span className='text-sm text-gray-600'>
+                          Click to upload image
+                        </span>
+                      </div>
+                    </label>
+                  )
+                ) : (
+                  <div className='space-y-2'>
                     <img
                       src={thumbnailPreview}
-                      alt="Thumbnail preview"
-                      className="w-full h-48 object-cover rounded-lg"
+                      alt='Thumbnail preview'
                     />
                     <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        setThumbnail(null);
-                        setThumbnailPreview("");
-                      }}
-                    >
-                      Remove
+                      variant='outline'
+                      size='sm'
+                      onClick={() => setChangeImage(true)}>
+                      Change Image
                     </Button>
                   </div>
-                ) : (
-                  <label className="cursor-pointer block">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleThumbnailChange}
-                    />
-                    <div className="space-y-2">
-                      <Image className="mx-auto h-12 w-12 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        Click to upload image
-                      </span>
-                    </div>
-                  </label>
                 )}
+                {}
               </div>
             </div>
           </div>

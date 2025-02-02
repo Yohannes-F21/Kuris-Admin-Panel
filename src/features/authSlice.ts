@@ -54,6 +54,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         localStorage.removeItem("userInfo");
+        localStorage.removeItem("blogContent");
       })
 
       // Send OTP
