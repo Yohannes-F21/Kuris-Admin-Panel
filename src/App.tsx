@@ -10,6 +10,7 @@ import Error from "./pages/Error";
 import { DashboardPage } from "./pages/DashboardPage";
 import { BlogListPage } from "./pages/BlogListPage";
 import { BlogEditorPage } from "./pages/BlogEditorPage";
+import { BlogCreatorPage } from "./pages/BlogCreatorPage";
 import OTPScreen from "./pages/OTPScreen";
 import { loader as blogLoader } from "./pages/BlogListPage";
 import ResetPassword from "./pages/ResetPassword";
@@ -22,7 +23,12 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
   if (!isAuthenticated) {
     // Redirect to login page if not authenticated
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to='/login'
+        replace
+      />
+    );
   }
 
   return children;
@@ -35,7 +41,12 @@ const PublicRoute = ({ children }: { children: JSX.Element }) => {
 
   if (isAuthenticated) {
     // Redirect to dashboard if authenticated
-    return <Navigate to="/dashboard" replace />;
+    return (
+      <Navigate
+        to='/dashboard'
+        replace
+      />
+    );
   }
 
   return children;
@@ -44,7 +55,7 @@ const PublicRoute = ({ children }: { children: JSX.Element }) => {
 // Define Routes
 const router = createBrowserRouter([
   {
-    path: "/dashboard",
+    path: "/",
     element: (
       <ProtectedRoute>
         <MainLayout />
@@ -55,15 +66,20 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        path: "/dashboard",
         element: <DashboardPage />,
       },
       {
-        path: "/dashboard/blogs",
+        path: "/blogs",
         element: <BlogListPage />,
         loader: blogLoader,
       },
       {
-        path: "/dashboard/blogs/new",
+        path: "/new-blog",
+        element: <BlogCreatorPage />,
+      },
+      {
+        path: "/edit-blog/:id",
         element: <BlogEditorPage />,
       },
     ],
