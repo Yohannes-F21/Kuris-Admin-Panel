@@ -19,11 +19,12 @@ interface AuthState {
 }
 
 // Initial state with type annotations
+const storedUser = localStorage.getItem("userInfo");
 const initialState: AuthState = {
-  isAuthenticated: false,
-  loggedInSession: false,
+  isAuthenticated: !!storedUser,
+  loggedInSession: !!storedUser,
   loading: false,
-  user: null,
+  user: storedUser ? JSON.parse(storedUser) : null,
 };
 
 console.log(initialState, "initialState");
@@ -52,7 +53,7 @@ const authSlice = createSlice({
       .addCase(authLogout, (state) => {
         state.isAuthenticated = false;
         state.user = null;
-        // localStorage.removeItem("userInfo");
+        localStorage.removeItem("userInfo");
       })
 
       // Send OTP
@@ -64,7 +65,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.loggedInSession = false;
-        // localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
+        localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
       })
       .addCase(UserSendOTP.rejected, (state) => {
         state.loading = false;

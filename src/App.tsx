@@ -10,8 +10,9 @@ import Error from "./pages/Error";
 import { DashboardPage } from "./pages/DashboardPage";
 import { BlogListPage } from "./pages/BlogListPage";
 import { BlogEditorPage } from "./pages/BlogEditorPage";
-import OTPScreen from "./pages/OtpScreen";
+import OTPScreen from "./pages/OTPScreen";
 import { loader as blogLoader } from "./pages/BlogListPage";
+import ResetPassword from "./pages/ResetPassword";
 
 // Route Guard Component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -27,16 +28,29 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
+const PublicRoute = ({ children }: { children: JSX.Element }) => {
+  const isAuthenticated = useSelector(
+    (state: any) => state.auth.isAuthenticated
+  );
+
+  if (isAuthenticated) {
+    // Redirect to dashboard if authenticated
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+};
+
 // Define Routes
 const router = createBrowserRouter([
   {
     path: "/dashboard",
-    // element: (
-    //   <ProtectedRoute>
-    //     <MainLayout />
-    //   </ProtectedRoute>
-    // ),
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    // element: <MainLayout />,
     errorElement: <Error />,
     children: [
       {
@@ -56,17 +70,37 @@ const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <LoginPage />,
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
     errorElement: <Error />,
   },
   {
     path: "/login",
-    element: <LoginPage />,
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
     errorElement: <Error />,
   },
   {
     path: "verify-otp/*",
-    element: <OTPScreen />,
+    element: (
+      <PublicRoute>
+        <OTPScreen />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: "reset-password*",
+    element: (
+      <PublicRoute>
+        <ResetPassword />
+      </PublicRoute>
+    ),
   },
 ]);
 
