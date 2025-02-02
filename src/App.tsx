@@ -12,7 +12,7 @@ import { BlogListPage } from "./pages/BlogListPage";
 import { BlogEditorPage } from "./pages/BlogEditorPage";
 import { BlogCreatorPage } from "./pages/BlogCreatorPage";
 import OTPScreen from "./pages/OTPScreen";
-import { loader as blogLoader } from "./pages/BlogListPage";
+// import { loader as blogLoader } from "./pages/BlogListPage";
 import ResetPassword from "./pages/ResetPassword";
 
 // Route Guard Component
@@ -23,12 +23,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
   if (!isAuthenticated) {
     // Redirect to login page if not authenticated
-    return (
-      <Navigate
-        to='/login'
-        replace
-      />
-    );
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -41,12 +36,7 @@ const PublicRoute = ({ children }: { children: JSX.Element }) => {
 
   if (isAuthenticated) {
     // Redirect to dashboard if authenticated
-    return (
-      <Navigate
-        to='/dashboard'
-        replace
-      />
-    );
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -72,7 +62,7 @@ const router = createBrowserRouter([
       {
         path: "/blogs",
         element: <BlogListPage />,
-        loader: blogLoader,
+        // loader: blogLoader,
       },
       {
         path: "/new-blog",

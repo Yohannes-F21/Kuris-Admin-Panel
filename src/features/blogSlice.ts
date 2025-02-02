@@ -128,3 +128,56 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 // // Export actions and reducer
 // export const {} = authSlice.actions;
 // export default authSlice.reducer;
+
+// import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { SearchFilterBlogs } from "./blogActions";
+
+// Define types for the state and parameters
+interface Blog {
+  _id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  isPublished: boolean;
+}
+
+interface BlogState {
+  blogs: Blog[];
+  loading: boolean;
+  error: string | null;
+  totalBlogs: number; // Total number of blogs (for pagination)
+  currentPage: number; // Current page number
+}
+
+const initialState: BlogState = {
+  blogs: [],
+  loading: false,
+  error: null,
+  totalBlogs: 0,
+  currentPage: 1,
+};
+
+const blogSlice = createSlice({
+  name: "blog",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    // Fetch all blogs initially
+    builder.addCase(SearchFilterBlogs.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(SearchFilterBlogs.fulfilled, (state, action) => {
+      state.loading = false;
+      state.blogs = action.payload.blogs; // Update blogs with filtered results
+      state.totalBlogs = action.payload.totalBlogs; // Update total count
+      state.currentPage = action.payload.currentPage; // Update current page
+    });
+    builder.addCase(SearchFilterBlogs.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
+  },
+});
+
+export default blogSlice.reducer;
