@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
+import { authLogout } from "../../features/authActions";
 import {
   LayoutDashboard,
   FileText,
@@ -10,6 +13,10 @@ import {
 } from "lucide-react";
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
+  const dispatch = useDispatch();
+  // const isAuthenticated = useSelector(
+  //   (state: any) => state.auth.isAuthenticated
+  // );
   return (
     <main>
       <button
@@ -32,7 +39,7 @@ export function Sidebar() {
         </div>
         <nav className="px-4 space-y-2">
           <NavLink
-            to="/"
+            to="/dashboard"
             className={({
               isActive,
             }) => `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors
@@ -46,7 +53,7 @@ export function Sidebar() {
             <span>Dashboard</span>
           </NavLink>
           <NavLink
-            to="/blogs"
+            to="/dashboard/blogs"
             className={({
               isActive,
             }) => `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors
@@ -60,7 +67,7 @@ export function Sidebar() {
             <span>View Blogs</span>
           </NavLink>
           <NavLink
-            to="/blogs/new"
+            to="/dashboard/blogs/new"
             className={({
               isActive,
             }) => `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors
@@ -77,7 +84,7 @@ export function Sidebar() {
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <button className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 w-full px-3 py-2">
             <LogOut size={20} />
-            <span>Logout</span>
+            <button onClick={() => dispatch(authLogout())}>Logout</button>
           </button>
         </div>
       </div>

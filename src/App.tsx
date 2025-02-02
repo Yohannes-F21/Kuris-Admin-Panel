@@ -11,6 +11,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { BlogListPage } from "./pages/BlogListPage";
 import { BlogEditorPage } from "./pages/BlogEditorPage";
 import OTPScreen from "./pages/OtpScreen";
+import { loader as blogLoader } from "./pages/BlogListPage";
 
 // Route Guard Component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -29,12 +30,13 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 // Define Routes
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: (
-      <ProtectedRoute>
-        <MainLayout />
-      </ProtectedRoute>
-    ),
+    path: "/dashboard",
+    // element: (
+    //   <ProtectedRoute>
+    //     <MainLayout />
+    //   </ProtectedRoute>
+    // ),
+    element: <MainLayout />,
     errorElement: <Error />,
     children: [
       {
@@ -42,14 +44,20 @@ const router = createBrowserRouter([
         element: <DashboardPage />,
       },
       {
-        path: "/blogs",
+        path: "/dashboard/blogs",
         element: <BlogListPage />,
+        loader: blogLoader,
       },
       {
-        path: "/blogs/new",
+        path: "/dashboard/blogs/new",
         element: <BlogEditorPage />,
       },
     ],
+  },
+  {
+    path: "/",
+    element: <LoginPage />,
+    errorElement: <Error />,
   },
   {
     path: "/login",

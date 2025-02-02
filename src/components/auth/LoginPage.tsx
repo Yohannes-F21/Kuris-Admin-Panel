@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Lock, Mail } from "lucide-react";
+
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { UserLogin } from "../../features/authActions";
+import { UserLogin, UserForgetPassword } from "../../features/authActions";
 import { useAppDispatch } from "../../features/hooks"; // Import the custom hook
 
 // Define types for form values
@@ -74,6 +75,53 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const [open, setOpen] = useState(false);
+
+  interface ForgetPasswordForm {
+    email: string;
+  }
+
+  // State for form values and loading
+  const [forgetPassword, setForgetPassword] = useState<ForgetPasswordForm>({
+    email: "",
+  });
+  const [forgetLoading, setForgetLoading] = useState<boolean>(false);
+
+  // Handle input changes
+  const handleForgetPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForgetPassword((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle password reset request
+  const handleChangePassword = async () => {
+    const { email } = forgetPassword;
+
+    if (!email.trim()) {
+      return notify("Please fill in all details");
+    }
+
+    setForgetLoading(true);
+    try {
+      const response = await dispatch(UserForgetPassword({ email }));
+      const payload = response.payload as { message?: string }; // Type assertion for payload
+
+      if (response.meta.requestStatus === "rejected") {
+        setForgetLoading(false);
+        return notify("User not found");
+      }
+
+      // Reset form and close modal
+      setForgetPassword({ email: "" });
+      setOpen(false);
+      setForgetLoading(false);
+      notify("Please check your email for the reset password link!");
+    } catch (error) {
+      setForgetLoading(false);
+      notify("An unexpected error occurred.");
+    }
+  };
+
   return (
     <>
       <ToastContainer />
@@ -125,11 +173,14 @@ export const LoginPage: React.FC = () => {
 
             {/* Remember Me and Forgot Password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2">
+              {/* <label className="flex items-center space-x-2">
                 <input type="checkbox" className="rounded border-gray-300" />
                 <span className="text-sm text-gray-600">Remember me</span>
-              </label>
-              <a href="#" className="text-sm text-blue-600 hover:underline">
+              </label> */}
+              <a
+                onClick={() => setOpen(true)}
+                className="text-sm text-blue-600 hover:underline"
+              >
                 Forgot password?
               </a>
             </div>
@@ -144,6 +195,65 @@ export const LoginPage: React.FC = () => {
         {/* Toast Notifications */}
         <ToastContainer />
       </div>
+
+      {
+        /* Forgot Password Dialog */
+        open && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            {/* Modal Container */}
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+              {/* Header */}
+
+              {/* Form */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleChangePassword();
+                }}
+                className="flex flex-col gap-4"
+              >
+                {/* Email Field */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Input your Email"
+                    value={forgetPassword.email}
+                    onChange={handleForgetPassword}
+                    required
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50"
+                  disabled={forgetLoading}
+                >
+                  {forgetLoading ? "Loading..." : "Send Mail"}
+                </button>
+              </form>
+              {/* Footer */}
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="text-sm text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
     </>
   );
 };

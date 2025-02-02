@@ -54,7 +54,7 @@ const OTPScreen: React.FC = () => {
       if (response.meta.requestStatus === "fulfilled") {
         notify("Login Successful");
         setLoading(false);
-        return navigate("/");
+        return navigate("/dashboard");
       }
 
       if (response.meta.requestStatus === "rejected") {
