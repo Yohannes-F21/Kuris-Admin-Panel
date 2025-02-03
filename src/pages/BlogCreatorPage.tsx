@@ -21,7 +21,6 @@ export function BlogCreatorPage() {
   const [content, setContent] = useState("");
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -99,7 +98,7 @@ export function BlogCreatorPage() {
           </Button>
           <Button onClick={() => handleSave(false)}>
             <Save className="w-4 h-4 mr-2" />
-            {isEditing ? "Update" : "Publish"}
+            Publish
           </Button>
         </div>
       </div>
@@ -117,7 +116,7 @@ export function BlogCreatorPage() {
                 <ReactQuill
                   value={content}
                   onChange={setContent}
-                  style={{ height: "500px" }}
+                  // style={{ height: "500px" }}
                   theme="snow"
                   modules={{
                     toolbar: [

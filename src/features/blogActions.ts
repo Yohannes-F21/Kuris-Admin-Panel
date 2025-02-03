@@ -1,16 +1,14 @@
 // import axios from "axios";
 import api from "../axios";
-import { createAsyncThunk, createAction } from "@reduxjs/toolkit";
-
-const url = "https://kuri-backend-ub77.onrender.com";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 
 // Define types for the data being passed in each thunk
-interface CreateBlogData {
-  title: string;
-  content: string;
-  thumbnail?: string;
-  isPublished?: boolean;
-}
+// interface CreateBlogData {
+//   title: string;
+//   content: string;
+//   thumbnail?: string;
+//   isPublished?: boolean;
+// }
 
 interface SearchFilterParams {
   search: string;

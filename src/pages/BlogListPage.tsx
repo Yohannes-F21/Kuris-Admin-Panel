@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useLoaderData, useNavigate } from "react-router-dom";
-import { Search, Edit2, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Edit2, Trash2 } from "lucide-react";
 import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
 import { DeleteConfirmationModal } from "../components/blog/DeleteConfirmationModal";
 import toast from "react-hot-toast";
-import axios from "axios";
-// import { Blog } from "../types";
 import { DeleteBlog, SearchFilterBlogs } from "../features/blogActions";
-// import { useAppDispatch } from "../features/hooks";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../features/store";
 
@@ -25,15 +21,15 @@ import { AppDispatch, RootState } from "../features/store";
 //   return { blogs };
 // };
 
-interface SearchFilterParams {
-  search: string;
-  limit: number;
-  page: number;
-  isPublished?: boolean;
-  sort?: string;
-  startDate?: string;
-  endDate?: string;
-}
+// interface SearchFilterParams {
+//   search: string;
+//   limit: number;
+//   page: number;
+//   isPublished?: boolean;
+//   sort?: string;
+//   startDate?: string;
+//   endDate?: string;
+// }
 
 export function BlogListPage() {
   const navigate = useNavigate();
@@ -41,7 +37,10 @@ export function BlogListPage() {
   // console.log(blogs);
   // const dispatch = useAppDispatch();
   const dispatch = useDispatch<AppDispatch>();
-  const { blogs, loading, error, totalBlogs, currentPage } = useSelector(
+  // const { blogs, loading, error, totalBlogs, currentPage } = useSelector(
+  //   (state: RootState) => state.blog
+  // );
+  const { blogs, totalBlogs, currentPage } = useSelector(
     (state: RootState) => state.blog
   );
   console.log(blogs);

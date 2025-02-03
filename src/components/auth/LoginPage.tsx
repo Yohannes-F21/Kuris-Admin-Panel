@@ -104,7 +104,7 @@ export const LoginPage: React.FC = () => {
     setForgetLoading(true);
     try {
       const response = await dispatch(UserForgetPassword({ email }));
-      const payload = response.payload as { message?: string }; // Type assertion for payload
+      // const payload = response.payload as { message?: string }; // Type assertion for payload
 
       if (response.meta.requestStatus === "rejected") {
         setForgetLoading(false);

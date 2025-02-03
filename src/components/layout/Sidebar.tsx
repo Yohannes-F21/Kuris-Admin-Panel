@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { authLogout } from "../../features/authActions";
 import {
@@ -20,8 +20,9 @@ export function Sidebar() {
   return (
     <main>
       <button
-        className='lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md'
-        onClick={() => setIsOpen(!isOpen)}>
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md"
+        onClick={() => setIsOpen(!isOpen)}
+      >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
       <div
@@ -31,13 +32,14 @@ export function Sidebar() {
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0 lg:static
         w-64 z-40
-      `}>
-        <div className='p-6'>
-          <h1 className='text-xl font-bold'>Kuri Admin</h1>
+      `}
+      >
+        <div className="p-6">
+          <h1 className="text-xl font-bold">Kuri Admin</h1>
         </div>
-        <nav className='px-4 space-y-2'>
+        <nav className="px-4 space-y-2">
           <NavLink
-            to='/dashboard'
+            to="/dashboard"
             className={({
               isActive,
             }) => `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors
@@ -45,12 +47,13 @@ export function Sidebar() {
                 isActive
                   ? "bg-gray-100 text-gray-900"
                   : "text-gray-600 hover:bg-gray-50"
-              }`}>
+              }`}
+          >
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
           </NavLink>
           <NavLink
-            to='/blogs'
+            to="/blogs"
             className={({
               isActive,
             }) => `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors
@@ -58,12 +61,13 @@ export function Sidebar() {
                 isActive
                   ? "bg-gray-100 text-gray-900"
                   : "text-gray-600 hover:bg-gray-50"
-              }`}>
+              }`}
+          >
             <FileText size={20} />
             <span>View Blogs</span>
           </NavLink>
           <NavLink
-            to='/new-blog'
+            to="/new-blog"
             className={({
               isActive,
             }) => `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors
@@ -71,13 +75,14 @@ export function Sidebar() {
                 isActive
                   ? "bg-gray-100 text-gray-900"
                   : "text-gray-600 hover:bg-gray-50"
-              }`}>
+              }`}
+          >
             <PlusCircle size={20} />
             <span>Create Blog</span>
           </NavLink>
         </nav>
-        <div className='absolute bottom-0 left-0 right-0 p-4'>
-          <button className='flex items-center space-x-3 text-gray-600 hover:text-gray-900 w-full px-3 py-2'>
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <button className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 w-full px-3 py-2">
             <LogOut size={20} />
             <button onClick={() => dispatch(authLogout())}>Logout</button>
           </button>

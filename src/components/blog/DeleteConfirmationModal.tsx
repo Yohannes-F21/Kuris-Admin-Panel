@@ -1,4 +1,3 @@
-import React from "react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 interface DeleteConfirmationModalProps {
@@ -11,9 +10,10 @@ export function DeleteConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
-  blogTitle
+  blogTitle,
 }: DeleteConfirmationModalProps) {
-  return <Modal isOpen={isOpen} onClose={onClose} title="Delete Blog">
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Delete Blog">
       <div className="space-y-4">
         <p className="text-gray-600">
           Are you sure you want to delete "{blogTitle}"? This action cannot be
@@ -28,5 +28,6 @@ export function DeleteConfirmationModal({
           </Button>
         </div>
       </div>
-    </Modal>;
+    </Modal>
+  );
 }

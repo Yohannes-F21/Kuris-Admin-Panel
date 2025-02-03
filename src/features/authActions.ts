@@ -1,8 +1,6 @@
 import api from "../axios";
 import { createAsyncThunk, createAction } from "@reduxjs/toolkit";
 
-const url = "https://kuri-backend-ub77.onrender.com";
-
 // Define types for the data being passed in each thunk
 interface LoginData {
   email: string;

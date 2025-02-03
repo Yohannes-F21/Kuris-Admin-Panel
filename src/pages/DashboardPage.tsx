@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FileText, Edit, Archive } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../features/store";
 import { SearchFilterBlogs } from "../features/blogActions";
 export function DashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
-  const { blogs, loading, error, totalBlogs } = useSelector(
-    (state: RootState) => state.blog
-  );
+  const { blogs, totalBlogs } = useSelector((state: RootState) => state.blog);
   const [searchParams, setSearchParams] = useState({
     search: "",
     limit: 10,
