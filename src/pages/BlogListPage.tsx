@@ -7,7 +7,7 @@ import { DeleteConfirmationModal } from "../components/blog/DeleteConfirmationMo
 import toast from "react-hot-toast";
 import axios from "axios";
 // import { Blog } from "../types";
-import { SearchFilterBlogs } from "../features/blogActions";
+import { DeleteBlog, SearchFilterBlogs } from "../features/blogActions";
 // import { useAppDispatch } from "../features/hooks";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../features/store";
@@ -76,6 +76,7 @@ export function BlogListPage() {
     startDate: "",
     endDate: "",
     sort: "createdAt", // Default sorting by creation date
+    isPublished: false,
     // Default to published blogs
   });
 
@@ -85,11 +86,6 @@ export function BlogListPage() {
     dispatch(SearchFilterBlogs(searchParams));
   }, [dispatch, searchParams]); // Add `searchParams` as a dependency
 
-  // Handle search/filter changes
-  const handleSearch = () => {
-    setSearchParams((prev) => ({ ...prev, page: 1 })); // Reset to page 1 when searching
-  };
-
   // Handle input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -97,9 +93,6 @@ export function BlogListPage() {
     const { name, value } = e.target;
     setSearchParams((prev) => ({ ...prev, [name]: value }));
   };
-  //   useEffect(() => {
-  //     fetchBlogs({ search: "", limit: 10, page: 1, sort: "" });
-  //   }, []);
 
   const handleEdit = (id: string) => {
     navigate(`/edit-blog/${id}`);
@@ -116,21 +109,29 @@ export function BlogListPage() {
     // In a real app, this would delete from your backend
   };
   const handleDeleteModal = (id: any) => {
-    toast.success("Blog deleted successfully!");
+    dispatch(DeleteBlog({ _id: id })).then((response) => {
+      if (response.meta.requestStatus === "fulfilled") {
+        toast.success("Blog deleted successfully!");
+        setSearchParams((prev) => ({ ...prev, page: 1 })); // Reset to page 1 after deletion
+      } else {
+        toast.error("Failed to delete blog");
+      }
+    });
+
     setIsDeleteModalOpen(false);
   };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Blogs</h1>
-        <Button size="sm" onClick={() => navigate("/blogs/new")}>
+        <Button size="sm" onClick={() => navigate("/new-blog")}>
           Create New Blog
         </Button>
       </div>
       <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-4 border-b">
+        <div className="p-4  mb-5 ">
           <div className="relative">
-            <div className="mb-4 space-y-2">
+            <div className="mb-4  flex flex-col md:flex-row md:items-center md:justify-between md:space-x-4">
               <input
                 type="text"
                 name="search"
@@ -148,12 +149,15 @@ export function BlogListPage() {
                 <option value="createdAt">Sort by Date</option>
                 <option value="title">Sort by Title</option>
               </select>
-              <button
-                onClick={handleSearch}
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              <select
+                name="isPublished"
+                value={searchParams.isPublished.toString()}
+                onChange={handleChange}
+                className="border border-gray-300 px-3 py-2 rounded-md w-full"
               >
-                Search
-              </button>
+                <option value="true">Published</option>
+                <option value="false">Draft</option>
+              </select>
             </div>
           </div>
         </div>
@@ -172,7 +176,7 @@ export function BlogListPage() {
               {blogs.map((blog) => (
                 <tr key={blog._id} className="border-b last:border-0">
                   <td className="p-4">{blog.title}</td>
-                  <td className="p-4">{blog.title}</td>
+                  <td className="p-4">{blog.author.email}</td>
                   {/* <td className="p-4">Health</td> */}
                   <td className="p-4">
                     <span

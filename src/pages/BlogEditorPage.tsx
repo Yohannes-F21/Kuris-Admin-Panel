@@ -147,46 +147,41 @@ export function BlogEditorPage() {
   };
 
   return (
-    <div className='space-y-6'>
-      <div className='flex-row gap-5 md:flex justify-end items-center md:justify-between'>
-        <div className='flex items-center space-x-4'>
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => navigate("/blogs")}>
+    <div className="space-y-6">
+      <div className="flex-row gap-5 md:flex justify-end items-center md:justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/blogs")}>
             <ArrowLeft size={20} />
           </Button>
-          <h1 className='text-lg md:text-2xl font-bold'>Edit Blog</h1>
+          <h1 className="text-lg md:text-2xl font-bold">Edit Blog</h1>
         </div>
-        <div className='flex items-center space-x-3'>
+        <div className="flex items-center space-x-3">
           {/* <span>Last saved checkpoint: {time}</span> */}
 
-          <Button
-            variant='outline'
-            onClick={() => handleSave(true)}>
+          <Button variant="outline" onClick={() => handleSave(true)}>
             Save as Draft
           </Button>
           <Button onClick={() => handleSave(false)}>
-            <Save className='w-4 h-4 mr-2' />
+            <Save className="w-4 h-4 mr-2" />
             {isEditing ? "Update" : "Publish"}
           </Button>
         </div>
       </div>
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-        <div className='lg:col-span-2 space-y-6'>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
           <Input
-            placeholder='Blog Title'
+            placeholder="Blog Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className='text-2xl font-semibold'
+            className="text-2xl font-semibold"
           />
-          <div className='prose max-w-none '>
-            <div className='h-[500px] mb-12'>
+          <div className="prose max-w-none ">
+            <div className="h-[500px] mb-12">
               <ReactQuill
                 value={content}
                 onChange={setContent}
                 style={{ height: "500px" }}
-                theme='snow'
+                theme="snow"
                 modules={{
                   toolbar: [
                     [
@@ -219,61 +214,60 @@ export function BlogEditorPage() {
             </div>
           </div>
         </div>
-        <div className='space-y-6'>
-          <div className='bg-white rounded-lg shadow-sm p-6 space-y-6'>
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
             <div>
-              <h3 className='text-lg font-semibold mb-4'>Blog Settings</h3>
+              <h3 className="text-lg font-semibold mb-4">Blog Settings</h3>
             </div>
             <div>
-              <label className='block text-sm font-medium mb-2'>
+              <label className="block text-sm font-medium mb-2">
                 Featured Image
               </label>
-              <div className='border-2 border-dashed border-gray-200 rounded-lg p-4 text-center'>
+              <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center">
                 {changeImage ? (
                   thumbnailPreview ? (
-                    <div className='relative'>
+                    <div className="relative">
                       <img
                         src={thumbnailPreview}
-                        alt='Thumbnail preview'
-                        className='w-full h-48 object-cover rounded-lg'
+                        alt="Thumbnail preview"
+                        className="w-full h-48 object-cover rounded-lg"
                       />
                       <Button
-                        variant='destructive'
-                        size='sm'
-                        className='absolute top-2 right-2'
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
                         onClick={() => {
                           setThumbnail(null);
                           setThumbnailPreview("");
-                        }}>
+                        }}
+                      >
                         Remove
                       </Button>
                     </div>
                   ) : (
-                    <label className='cursor-pointer block'>
+                    <label className="cursor-pointer block">
                       <Input
-                        type='file'
-                        accept='image/*'
-                        className='hidden'
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
                         onChange={handleThumbnailChange}
                       />
-                      <div className='space-y-2'>
-                        <Image className='mx-auto h-12 w-12 text-gray-400' />
-                        <span className='text-sm text-gray-600'>
+                      <div className="space-y-2">
+                        <Image className="mx-auto h-12 w-12 text-gray-400" />
+                        <span className="text-sm text-gray-600">
                           Click to upload image
                         </span>
                       </div>
                     </label>
                   )
                 ) : (
-                  <div className='space-y-2'>
-                    <img
-                      src={thumbnailPreview}
-                      alt='Thumbnail preview'
-                    />
+                  <div className="space-y-2">
+                    <img src={thumbnailPreview} alt="Thumbnail preview" />
                     <Button
-                      variant='outline'
-                      size='sm'
-                      onClick={() => setChangeImage(true)}>
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setChangeImage(true)}
+                    >
                       Change Image
                     </Button>
                   </div>

@@ -133,12 +133,19 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { SearchFilterBlogs } from "./blogActions";
 
 // Define types for the state and parameters
+export interface Author {
+  _id: string;
+  name: string;
+  email: string;
+}
 interface Blog {
   _id: string;
   title: string;
   content: string;
+  created: string;
   createdAt: string;
   isPublished: boolean;
+  author: Author;
 }
 
 interface BlogState {
