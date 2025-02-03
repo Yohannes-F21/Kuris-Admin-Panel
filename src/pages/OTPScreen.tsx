@@ -4,7 +4,7 @@ import { Input } from "../components/ui/Input";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useDispatch } from "react-redux";
+// import { useDispatch } from "react-redux";
 import { UserSendOTP } from "../features/authActions";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../features/hooks"; // Import custom `useAppDispatch` hook
@@ -49,7 +49,7 @@ const OTPScreen: React.FC = () => {
 
     try {
       const response = await dispatch(UserSendOTP(formValue));
-      const payload = response.payload as { message?: string }; // Type assertion for payload
+      // const payload = response.payload as { message?: string }; // Type assertion for payload
 
       if (response.meta.requestStatus === "fulfilled") {
         notify("Login Successful");

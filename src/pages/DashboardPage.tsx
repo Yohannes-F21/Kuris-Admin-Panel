@@ -6,16 +6,25 @@ import { SearchFilterBlogs } from "../features/blogActions";
 export function DashboardPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { blogs, totalBlogs } = useSelector((state: RootState) => state.blog);
-  const [searchParams, setSearchParams] = useState({
+  // const [searchParams, setSearchParams] = useState({
+  //   search: "",
+  //   limit: 10,
+  //   page: 1,
+  //   startDate: "",
+  //   endDate: "",
+  //   sort: "createdAt", // Default sorting by creation date
+
+  //   // Default to published blogs
+  // });
+
+  const searchParams = {
     search: "",
     limit: 10,
     page: 1,
     startDate: "",
     endDate: "",
-    sort: "createdAt", // Default sorting by creation date
-
-    // Default to published blogs
-  });
+    sort: "createdAt",
+  };
 
   //Fetch all blogs on component mount
 

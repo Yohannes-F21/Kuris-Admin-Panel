@@ -95,7 +95,7 @@ const ResetPassword: React.FC = () => {
 
     try {
       const response = await dispatch(UserResetPassword(formValue));
-      const payload = response.payload as { message?: string }; // Type assertion for payload
+      // const payload = response.payload as { message?: string }; // Type assertion for payload
 
       if (response.meta.requestStatus === "fulfilled") {
         notify("Reset Successful");
