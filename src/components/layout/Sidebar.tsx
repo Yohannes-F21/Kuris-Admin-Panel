@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  LockKeyhole,
 } from "lucide-react";
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true);
@@ -79,6 +80,20 @@ export function Sidebar() {
           >
             <PlusCircle size={20} />
             <span>Create Blog</span>
+          </NavLink>
+          <NavLink
+            to="/Profile"
+            className={({
+              isActive,
+            }) => `flex items-center space-x-3 px-3 py-2 rounded-md transition-colors
+              ${
+                isActive
+                  ? "bg-gray-100 text-gray-900"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+          >
+            <LockKeyhole size={20} />
+            <span>Change Password</span>
           </NavLink>
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4">

@@ -166,7 +166,7 @@ const ResetPassword: React.FC = () => {
           <div className="flex justify-center">
             <Button
               type="submit"
-              className="bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 px-12 py-3 rounded-3xl"
+              className="w-full "
               disabled={isDisabled || loading}
             >
               {loading ? "Loading..." : "Reset Password"}

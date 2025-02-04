@@ -14,6 +14,7 @@ import { BlogCreatorPage } from "./pages/BlogCreatorPage";
 import OTPScreen from "./pages/OTPScreen";
 // import { loader as blogLoader } from "./pages/BlogListPage";
 import ResetPassword from "./pages/ResetPassword";
+import Profile from "./pages/Profile";
 
 // Route Guard Component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
       {
         path: "/edit-blog/:id",
         element: <BlogEditorPage />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
       },
     ],
   },

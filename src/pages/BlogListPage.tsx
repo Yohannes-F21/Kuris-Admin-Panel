@@ -8,29 +8,6 @@ import { DeleteBlog, SearchFilterBlogs } from "../features/blogActions";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../features/store";
 
-// export const loader = async (): Promise<{ blogs: Blog }> => {
-//   const response = await axios({
-//     baseURL: "https://kuri-backend-ub77.onrender.com",
-//     url: "/blogs",
-//     method: "GET",
-//   });
-//   // console.log(response);
-//   const blogs = response.data.blogs;
-//   console.log(blogs);
-
-//   return { blogs };
-// };
-
-// interface SearchFilterParams {
-//   search: string;
-//   limit: number;
-//   page: number;
-//   isPublished?: boolean;
-//   sort?: string;
-//   startDate?: string;
-//   endDate?: string;
-// }
-
 export function BlogListPage() {
   const navigate = useNavigate();
   // const { blogs } = useLoaderData();
@@ -39,7 +16,7 @@ export function BlogListPage() {
   const dispatch = useDispatch<AppDispatch>();
   // const { blogs, loading, error, totalBlogs, currentPage } = useSelector(
   //   (state: RootState) => state.blog
-  // );
+  // ); // leave for reference
   const { blogs, totalBlogs, currentPage } = useSelector(
     (state: RootState) => state.blog
   );
@@ -75,7 +52,7 @@ export function BlogListPage() {
     startDate: "",
     endDate: "",
     sort: "createdAt", // Default sorting by creation date
-    isPublished: false,
+    isPublished: true,
     // Default to published blogs
   });
 
@@ -90,7 +67,16 @@ export function BlogListPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setSearchParams((prev) => ({ ...prev, [name]: value }));
+
+    setSearchParams((prev) => ({
+      ...prev,
+      [name]:
+        name === "isPublished"
+          ? value === "all"
+            ? undefined // Set to undefined when "All" is selected
+            : value === "true"
+          : value,
+    }));
   };
 
   const handleEdit = (id: string) => {
@@ -150,10 +136,15 @@ export function BlogListPage() {
               </select>
               <select
                 name="isPublished"
-                value={searchParams.isPublished.toString()}
+                value={
+                  searchParams.isPublished === undefined
+                    ? "all"
+                    : searchParams.isPublished.toString()
+                }
                 onChange={handleChange}
                 className="border border-gray-300 px-3 py-2 rounded-md w-full"
               >
+                <option value="all">All</option>
                 <option value="true">Published</option>
                 <option value="false">Draft</option>
               </select>

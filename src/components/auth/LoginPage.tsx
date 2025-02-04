@@ -233,13 +233,13 @@ export const LoginPage: React.FC = () => {
                 </div>
 
                 {/* Submit Button */}
-                <button
+                <Button
                   type="submit"
-                  className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50"
+                  className="w-full "
                   disabled={forgetLoading}
                 >
                   {forgetLoading ? "Loading..." : "Send Mail"}
-                </button>
+                </Button>
               </form>
               {/* Footer */}
               <div className="mt-4 text-center">
