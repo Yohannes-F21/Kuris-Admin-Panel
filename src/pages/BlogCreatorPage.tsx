@@ -4,15 +4,13 @@ import { ArrowLeft, Image, Save } from "lucide-react";
 import ReactQuill from "react-quill";
 
 import "react-quill/dist/quill.snow.css";
-// import "~/react-quill/dist/quill.snow.css";
-// import "react-quill/dist/quill.snow.css";
-// import "quill/dist/quill.snow.css";
 
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "../features/hooks";
 import { CreateBlog } from "../features/blogActions";
+import { Dropdown } from "../components/Dropdown";
 
 export function BlogCreatorPage() {
   const navigate = useNavigate();
@@ -21,6 +19,17 @@ export function BlogCreatorPage() {
   const [content, setContent] = useState("");
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const contentType = [
+    { value: "news", label: "News" },
+    { value: "blog", label: "Blog" },
+  ];
+
+  const contentLanguage = [
+    { value: "en", label: "English" },
+    { value: "am", label: "አማርኛ" },
+  ];
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,6 +68,7 @@ export function BlogCreatorPage() {
   }, [title, content, thumbnailPreview]);
 
   const handleSave = async (isDraft: boolean) => {
+    setLoading(true);
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
@@ -71,16 +81,22 @@ export function BlogCreatorPage() {
     try {
       const response = await dispatch(CreateBlog(formData));
       if (response.meta.requestStatus === "fulfilled") {
+        setLoading(false);
         toast.success(
           `Blog ${isDraft ? "saved as draft" : "published"} successfully!`
         );
         navigate("/blogs");
       } else {
+        setLoading(false);
         toast.error("Failed to save blog");
       }
     } catch (error) {
+      setLoading(false);
       toast.error("An unexpected error occurred.");
     }
+  };
+  const handleDropdownValue = (data: string) => {
+    console.log(data);
   };
 
   return (
@@ -93,10 +109,14 @@ export function BlogCreatorPage() {
           <h1 className="text-lg md:text-2xl font-bold">Create New Blog</h1>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={() => handleSave(true)}>
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={() => handleSave(true)}
+          >
             Save as Draft
           </Button>
-          <Button onClick={() => handleSave(false)}>
+          <Button disabled={loading} onClick={() => handleSave(false)}>
             <Save className="w-4 h-4 mr-2" />
             Publish
           </Button>
@@ -110,6 +130,16 @@ export function BlogCreatorPage() {
             onChange={(e) => setTitle(e.target.value)}
             className="text-2xl font-semibold"
           />
+          <div className="flex gap-4">
+            <Dropdown
+              dropdownValue={handleDropdownValue}
+              dropdownContent={contentType}
+            ></Dropdown>
+            <Dropdown
+              dropdownValue={handleDropdownValue}
+              dropdownContent={contentLanguage}
+            ></Dropdown>
+          </div>
           <div className="prose max-w-none ">
             <div className="h-[500px] mb-12">
               <div style={{ height: "500px" }}>

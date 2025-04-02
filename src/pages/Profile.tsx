@@ -1,89 +1,87 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { UserChangePassword } from "../features/authActions";
+import { useNavigate } from "react-router-dom";
+import { Button } from "../components/ui/Button"; // Import shadcn/ui Button
+// import { AppDispatch } from "../features/store"; // Import AppDispatch for typed dispatch
+import { useAppDispatch } from "../features/hooks";
+const notify = (text: string) => toast(text);
+const storedUser = localStorage.getItem("userInfo");
 
+const user = storedUser ? JSON.parse(storedUser) : null;
+console.log(user._id);
+
+interface FormValues {
+  _id: string;
+  email: string;
+  oldPassword: string;
+  newPassword: string;
+}
 const Profile = () => {
-  // State for form fields
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const dispatch = useAppDispatch(); // Use the custom hook for typed dispatch
+  const navigate = useNavigate();
+  //  const query = useQuery();
 
-  // State for error messages
-  const [errors, setErrors] = useState({
+  // State for form values and loading
+  const [formValue, setFormValue] = useState<FormValues>({
+    _id: user._id,
+    email: user.email,
     oldPassword: "",
     newPassword: "",
-    confirmNewPassword: "",
   });
+  const [isDisabled, setIsDisabled] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // State for loading
-  const [isLoading, setIsLoading] = useState(false);
+  // Regular expression for strong password validation
+  const regEx = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,}$/;
 
-  // Validation function
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = {
-      oldPassword: "",
-      newPassword: "",
-      confirmNewPassword: "",
-    };
+  // Handle input changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormValue((prev) => ({ ...prev, [name]: value }));
 
-    // Validate Old Password
-    if (!oldPassword.trim()) {
-      newErrors.oldPassword = "Old password is required.";
-      isValid = false;
+    // Revalidate fields
+    if (name === "newPassword") {
+      validatePassword(value);
     }
+  };
 
-    // Validate New Password
-    if (!newPassword.trim()) {
-      newErrors.newPassword = "New password is required.";
-      isValid = false;
-    } else if (newPassword.length < 8) {
-      newErrors.newPassword = "New password must be at least 8 characters.";
-      isValid = false;
-    } else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-        newPassword
-      )
-    ) {
-      newErrors.newPassword =
-        "Password must include uppercase, lowercase, number, and special character.";
-      isValid = false;
+  // Validate password strength
+  const validatePassword = (password: string) => {
+    if (!regEx.test(password)) {
+      setIsDisabled(true);
+      return "Password must be 8+ characters long & contain at least a special character, a number, an uppercase, and a lowercase character!";
     }
-
-    // Validate Confirm New Password
-    if (!confirmNewPassword.trim()) {
-      newErrors.confirmNewPassword = "Confirm password is required.";
-      isValid = false;
-    } else if (newPassword !== confirmNewPassword) {
-      newErrors.confirmNewPassword = "Passwords do not match.";
-      isValid = false;
-    }
-
-    // Update errors state
-    setErrors(newErrors);
-    return isValid;
+    setIsDisabled(false);
+    return "";
   };
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validate the form
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      // Simulate an API call to change the password
-      console.log("Form Values:", { oldPassword, newPassword });
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate delay
-      toast.success("Password changed successfully!");
+      const response = await dispatch(UserChangePassword(formValue));
+      // const payload = response.payload as { message?: string }; // Type assertion for payload
+
+      if (response.meta.requestStatus === "fulfilled") {
+        notify("Password Changed Successfully");
+        setLoading(false);
+        return navigate("/dashboard");
+      }
+
+      if (response.meta.requestStatus === "rejected") {
+        console.log(response.payload.message);
+
+        setLoading(false);
+        notify("There's something wrong");
+      }
     } catch (error) {
-      toast.error("Failed to change password. Please try again.");
-    } finally {
-      setIsLoading(false);
+      setLoading(false);
+      notify("An unexpected error occurred.");
     }
   };
 
@@ -105,15 +103,10 @@ const Profile = () => {
             <input
               type="password"
               id="oldPassword"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border ${
-                errors.oldPassword ? "border-red-500" : "border-gray-300"
-              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+              // value={formValue.oldPassword}
+              onChange={handleChange}
+              className={`mt-1 block w-full px-3 py-2 border  rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
             />
-            {errors.oldPassword && (
-              <p className="text-sm text-red-500">{errors.oldPassword}</p>
-            )}
           </div>
 
           {/* New Password Field */}
@@ -127,48 +120,21 @@ const Profile = () => {
             <input
               type="password"
               id="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border ${
-                errors.newPassword ? "border-red-500" : "border-gray-300"
-              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+              // value={formValue.newPassword}
+              onChange={handleChange}
+              className={`mt-1 block w-full px-3 py-2 border  rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
             />
-            {errors.newPassword && (
-              <p className="text-sm text-red-500">{errors.newPassword}</p>
-            )}
           </div>
 
           {/* Confirm New Password Field */}
-          <div>
-            <label
-              htmlFor="confirmNewPassword"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              id="confirmNewPassword"
-              value={confirmNewPassword}
-              onChange={(e) => setConfirmNewPassword(e.target.value)}
-              className={`mt-1 block w-full px-3 py-2 border ${
-                errors.confirmNewPassword ? "border-red-500" : "border-gray-300"
-              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-            />
-            {errors.confirmNewPassword && (
-              <p className="text-sm text-red-500">
-                {errors.confirmNewPassword}
-              </p>
-            )}
-          </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-gray-900 text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors disabled:bg-gray-400"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? "Changing..." : "Change Password"}
+            {loading ? "Changing..." : "Change Password"}
           </button>
         </form>
       </div>
