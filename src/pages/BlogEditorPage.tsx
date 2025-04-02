@@ -23,21 +23,22 @@ export function BlogEditorPage() {
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [picturePreview, setPicturePreview] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+
   const [changeImage, setChangeImage] = useState(false);
+  const [isDraft, setIsDraft] = useState(false);
   // const url = "https://kuri-backend-ub77.onrender.com";
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const savedContent = localStorage.getItem("blogContent");
     const parsedContent = savedContent ? JSON.parse(savedContent) : null;
     console.log(savedContent);
     if (id) {
-      setIsEditing(true);
       dispatch(GetBlog({ _id: id })).then((response) => {
         if (response.meta.requestStatus === "fulfilled") {
           const { blog } = response.payload;
-          console.log(blog, "the blog");
-          console.log(blog.title, blog.content, "blog");
+          console.log(blog);
+          setIsDraft(!blog.isPublished);
           if (parsedContent?.id === id) {
             const { title, content } = parsedContent;
             setTitle(title || "");
@@ -91,6 +92,8 @@ export function BlogEditorPage() {
   }, [title, content]);
 
   const handleSave = async (isDraft: boolean) => {
+    setLoading(true);
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
@@ -106,15 +109,19 @@ export function BlogEditorPage() {
           toast.success(
             `Blog ${isDraft ? "saved as draft" : "published"} successfully!`
           );
+          setLoading(false);
           // navigate("/blogs");
         } else {
           toast.error("Failed to save blog");
+          setLoading(false);
         }
       } else {
         toast.error("Blog ID is missing.");
+        setLoading(false);
       }
     } catch (error) {
       toast.error("An unexpected error occurred.");
+      setLoading(false);
     }
   };
 
@@ -130,12 +137,16 @@ export function BlogEditorPage() {
         <div className="flex items-center space-x-3">
           {/* <span>Last saved checkpoint: {time}</span> */}
 
-          <Button variant="outline" onClick={() => handleSave(true)}>
-            Save as Draft
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={() => handleSave(true)}
+          >
+            {isDraft ? "Update Draft" : " Save as Draft"}
           </Button>
-          <Button onClick={() => handleSave(false)}>
+          <Button disabled={loading} onClick={() => handleSave(false)}>
             <Save className="w-4 h-4 mr-2" />
-            {isEditing ? "Update" : "Publish"}
+            {isDraft ? "Publish" : "Update"}
           </Button>
         </div>
       </div>
