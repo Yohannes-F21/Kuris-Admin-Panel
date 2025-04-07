@@ -10,7 +10,6 @@ const notify = (text: string) => toast(text);
 const storedUser = localStorage.getItem("userInfo");
 
 const user = storedUser ? JSON.parse(storedUser) : null;
-console.log(user._id);
 
 interface FormValues {
   _id: string;
