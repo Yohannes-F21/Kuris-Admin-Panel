@@ -17,20 +17,19 @@ export function DashboardPage() {
   //   // Default to published blogs
   // });
 
-  const searchParams = {
-    search: "",
-    limit: 10,
-    page: 1,
-    startDate: "",
-    endDate: "",
-    sort: "createdAt",
-  };
-
   //Fetch all blogs on component mount
 
   useEffect(() => {
+    const searchParams = {
+      search: "",
+      limit: 10,
+      page: 1,
+      startDate: "",
+      endDate: "",
+      sort: "createdAt",
+    };
     dispatch(SearchFilterBlogs(searchParams));
-  }, [dispatch, searchParams]); // Add `searchParams` as a dependency
+  }, [dispatch]); // Add `searchParams` as a dependency
 
   console.log(blogs);
 
@@ -62,7 +61,7 @@ export function DashboardPage() {
           <div className="flex items-center space-x-3">
             <FileText className="h-8 w-8 text-blue-500" />
             <div>
-              <p className="text-sm text-gray-600">Total Blogs</p>
+              <p className="text-sm text-gray-600">Total Blogs/News</p>
               <p className="text-2xl font-bold">{totalBlogs}</p>
             </div>
           </div>
@@ -71,7 +70,7 @@ export function DashboardPage() {
           <div className="flex items-center space-x-3">
             <Edit className="h-8 w-8 text-yellow-500" />
             <div>
-              <p className="text-sm text-gray-600">Draft Blogs</p>
+              <p className="text-sm text-gray-600">Draft Blogs/News</p>
               <p className="text-2xl font-bold">{draftBlogs}</p>
             </div>
           </div>
@@ -80,14 +79,14 @@ export function DashboardPage() {
           <div className="flex items-center space-x-3">
             <Archive className="h-8 w-8 text-green-500" />
             <div>
-              <p className="text-sm text-gray-600">Published Blogs</p>
+              <p className="text-sm text-gray-600">Published Blogs/News</p>
               <p className="text-2xl font-bold">{publishedBlogs}</p>
             </div>
           </div>
         </div>
       </div>
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold mb-4">Recent Blogs</h2>
+        <h2 className="text-lg font-semibold mb-4">Recent Blogs/News</h2>
         <div className="space-y-4">
           <div>
             {recentBlogs.length === 0 ? (
@@ -98,24 +97,27 @@ export function DashboardPage() {
               recentBlogs.map((blog) => (
                 <div
                   key={blog._id}
-                  className="flex items-center justify-between py-3 border-b last:border-0"
+                  className="grid grid-cols-3 py-3 border-b last:border-0"
                 >
                   <div>
-                    <h3 className="font-medium">{blog.title}</h3>
+                    <h3 className="font-medium">{blog.lang.english.title}</h3>
                     <p className="text-sm text-gray-500">
                       <span>{blog.isPublished ? "Published" : "Draft"}</span>{" "}
                       {formatDate(blog.created)}
                     </p>
                   </div>
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      blog.isPublished
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {blog.isPublished ? "Published" : "Draft"}
-                  </span>
+                  <h3 className="font-normal">{blog.category}</h3>
+                  <div>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full  ${
+                        blog.isPublished
+                          ? "bg-green-100 text-green-800"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {blog.isPublished ? "Published" : "Draft"}
+                    </span>
+                  </div>
                 </div>
               ))
             )}

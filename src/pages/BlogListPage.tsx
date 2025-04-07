@@ -22,29 +22,6 @@ export function BlogListPage() {
   );
   console.log(blogs);
 
-  // const fetchBlogs = async ({
-  //   search,
-  //   limit,
-  //   page,
-  //   isPublished,
-  //   sort,
-  //   startDate,
-  //   endDate,
-  // }: SearchFilterParams) => {
-  //   dispatch(
-  //     SearchFilterBlogs({
-  //       search,
-  //       limit,
-  //       page,
-  //       isPublished,
-  //       sort,
-  //       startDate,
-  //       endDate,
-  //     })
-  //   ).then((response) => {
-  //     console.log(response);
-  //   });
-  // };
   const [searchParams, setSearchParams] = useState({
     search: "",
     limit: 10,
@@ -52,7 +29,8 @@ export function BlogListPage() {
     startDate: "",
     endDate: "",
     sort: "createdAt", // Default sorting by creation date
-    isPublished: true,
+    isPublished: undefined as boolean | undefined,
+    category: "", // Default to all categories
     // Default to published blogs
   });
 
@@ -73,10 +51,15 @@ export function BlogListPage() {
       [name]:
         name === "isPublished"
           ? value === "all"
-            ? undefined // Set to undefined when "All" is selected
+            ? undefined
             : value === "true"
+          : name === "category"
+          ? value === "all"
+            ? ""
+            : value
           : value,
     }));
+    console.log(searchParams);
   };
 
   const handleEdit = (id: string) => {
@@ -86,20 +69,28 @@ export function BlogListPage() {
   const [selectedBlog, setSelectedBlog] = useState<{
     id: string;
     title: string;
+    category: string;
   } | null>(null);
-  const handleDelete = (id: any, title: any) => {
-    setSelectedBlog({ id, title });
+  const handleDelete = (id: any, title: any, category: any) => {
+    setSelectedBlog({ id, title, category });
     setIsDeleteModalOpen(true);
 
     // In a real app, this would delete from your backend
   };
   const handleDeleteModal = (id: any) => {
+    const currentCategory = selectedBlog?.category;
     dispatch(DeleteBlog({ _id: id })).then((response) => {
       if (response.meta.requestStatus === "fulfilled") {
-        toast.success("Blog deleted successfully!");
+        toast.success(
+          `${
+            currentCategory === "blog" ? "Blog" : "News"
+          } deleted successfully!`
+        );
         setSearchParams((prev) => ({ ...prev, page: 1 })); // Reset to page 1 after deletion
       } else {
-        toast.error("Failed to delete blog");
+        toast.error(
+          `Failed to delete ${currentCategory === "blog" ? "Blog" : "News"}`
+        );
       }
     });
 
@@ -108,9 +99,9 @@ export function BlogListPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Blogs</h1>
+        <h1 className="text-2xl font-bold">Blogs/News</h1>
         <Button size="sm" onClick={() => navigate("/new-blog")}>
-          Create New Blog
+          Create New Blog/News
         </Button>
       </div>
       <div className="bg-white rounded-lg shadow-sm">
@@ -134,6 +125,20 @@ export function BlogListPage() {
                 <option value="createdAt">Sort by Date</option>
                 <option value="title">Sort by Title</option>
               </select>
+
+              <select
+                name="category"
+                value={
+                  searchParams.category === "" ? "all" : searchParams.category
+                }
+                onChange={handleChange}
+                className="border border-gray-300 px-3 py-2 rounded-md w-full"
+              >
+                <option value="all">All</option>
+                <option value="blog">Blogs</option>
+                <option value="news">News</option>
+              </select>
+
               <select
                 name="isPublished"
                 value={
@@ -157,7 +162,7 @@ export function BlogListPage() {
               <tr className="border-b bg-gray-50">
                 <th className="text-left p-4 font-medium">Title</th>
                 <th className="text-left p-4 font-medium">Author</th>
-                {/* <th className="text-left p-4 font-medium">Category</th> */}
+                <th className="text-left p-4 font-medium">Category</th>
                 <th className="text-left p-4 font-medium">Status</th>
                 <th className="text-right p-4 font-medium">Actions</th>
               </tr>
@@ -165,8 +170,9 @@ export function BlogListPage() {
             <tbody>
               {blogs.map((blog) => (
                 <tr key={blog._id} className="border-b last:border-0">
-                  <td className="p-4">{blog.title}</td>
+                  <td className="p-4">{blog.lang.english.title}</td>
                   <td className="p-4">{blog.author.email}</td>
+                  <td className="p-4">{blog.category}</td>
                   {/* <td className="p-4">Health</td> */}
                   <td className="p-4">
                     <span
@@ -191,7 +197,13 @@ export function BlogListPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(blog._id, blog.title)}
+                      onClick={() =>
+                        handleDelete(
+                          blog._id,
+                          blog.lang.english.title,
+                          blog.category
+                        )
+                      }
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>

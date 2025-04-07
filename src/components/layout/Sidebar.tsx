@@ -13,7 +13,7 @@ import {
   LockKeyhole,
 } from "lucide-react";
 export function Sidebar() {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   // const isAuthenticated = useSelector(
   //   (state: any) => state.auth.isAuthenticated
@@ -30,8 +30,8 @@ export function Sidebar() {
         className={`
         fixed top-0 left-0 h-full bg-white shadow-lg
         transition-transform duration-300 ease-in-out
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0 lg:static
+        ${isOpen ? " sm:block " : " hidden"}
+        lg:translate-x-0 lg:static sm:block 
         w-64 z-40
       `}
       >
