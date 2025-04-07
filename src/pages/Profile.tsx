@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserChangePassword } from "../features/authActions";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/Button"; // Import shadcn/ui Button
+// import { Button } from "../components/ui/Button"; // Import shadcn/ui Button
 // import { AppDispatch } from "../features/store"; // Import AppDispatch for typed dispatch
 import { useAppDispatch } from "../features/hooks";
 const notify = (text: string) => toast(text);
@@ -51,6 +51,8 @@ const Profile = () => {
   const validatePassword = (password: string) => {
     if (!regEx.test(password)) {
       setIsDisabled(true);
+      console.log(isDisabled);
+
       return "Password must be 8+ characters long & contain at least a special character, a number, an uppercase, and a lowercase character!";
     }
     setIsDisabled(false);
