@@ -138,9 +138,14 @@ export interface Author {
   name: string;
   email: string;
 }
+export interface lang {
+  english: { title: string; content: string };
+  amharic: { title: string; content: string };
+}
 interface Blog {
   _id: string;
-  title: string;
+  lang: lang;
+  category: string;
   content: string;
   created: string;
   createdAt: string;
