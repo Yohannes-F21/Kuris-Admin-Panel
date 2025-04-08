@@ -9,7 +9,7 @@ import { useAppDispatch } from "../features/hooks";
 const notify = (text: string) => toast(text);
 const storedUser = localStorage.getItem("userInfo");
 
-const user = storedUser ? JSON.parse(storedUser) : null;
+const user = storedUser ? JSON?.parse(storedUser) : null;
 
 interface FormValues {
   _id: string;

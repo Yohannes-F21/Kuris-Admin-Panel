@@ -53,6 +53,7 @@ const authSlice = createSlice({
       // Logout
       .addCase(authLogout, (state) => {
         state.isAuthenticated = false;
+        state.loggedInSession = false;
         state.user = null;
         localStorage.removeItem("userInfo");
         localStorage.removeItem("blogContent");
@@ -138,6 +139,7 @@ const authSlice = createSlice({
         state.loggedInSession = false;
         state.user = null;
         localStorage.removeItem("userInfo");
+        localStorage.removeItem("blogContent");
       });
   },
 });

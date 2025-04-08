@@ -21,6 +21,13 @@ import { useAppDispatch } from "./features/hooks";
 
 // Route Guard Component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    //dispatch check session if the state of isAuthenticated is set to true
+
+    dispatch(CheckSession());
+  }, [dispatch]);
   const isAuthenticated = useSelector(
     (state: any) => state.auth.isAuthenticated
   );
@@ -119,11 +126,5 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    dispatch(CheckSession());
-  }, [dispatch]);
-
   return <RouterProvider router={router} />;
 }
