@@ -8,6 +8,7 @@ import {
   UserResetPassword,
   UserVerifyEmail,
   authLogout,
+  CheckSession,
 } from "./authActions";
 
 // Define the shape of the state
@@ -125,6 +126,18 @@ const authSlice = createSlice({
       })
       .addCase(UserChangePassword.rejected, (state) => {
         state.loading = false;
+      })
+      .addCase(CheckSession.fulfilled, (state, action: PayloadAction<any>) => {
+        state.isAuthenticated = true;
+        state.loggedInSession = true;
+        state.user = action.payload.user;
+        localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
+      })
+      .addCase(CheckSession.rejected, (state) => {
+        state.isAuthenticated = false;
+        state.loggedInSession = false;
+        state.user = null;
+        localStorage.removeItem("userInfo");
       });
   },
 });

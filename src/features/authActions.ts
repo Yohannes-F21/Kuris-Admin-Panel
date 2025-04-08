@@ -140,3 +140,15 @@ export const UserChangePassword = createAsyncThunk(
     }
   }
 );
+
+export const CheckSession = createAsyncThunk(
+  "user/check-session",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/user/auth/get-session`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data);
+    }
+  }
+);

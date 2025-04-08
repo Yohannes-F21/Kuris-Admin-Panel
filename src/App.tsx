@@ -15,6 +15,9 @@ import OTPScreen from "./pages/OTPScreen";
 // import { loader as blogLoader } from "./pages/BlogListPage";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
+import { useEffect } from "react";
+import { CheckSession } from "./features/authActions.ts";
+import { useAppDispatch } from "./features/hooks";
 
 // Route Guard Component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -116,5 +119,11 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(CheckSession());
+  }, [dispatch]);
+
   return <RouterProvider router={router} />;
 }
