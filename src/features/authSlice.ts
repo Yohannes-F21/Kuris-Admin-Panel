@@ -25,7 +25,7 @@ const initialState: AuthState = {
   isAuthenticated: !!storedUser,
   loggedInSession: !!storedUser,
   loading: false,
-  user: storedUser ? JSON.parse(storedUser) : null,
+  user: storedUser ? JSON?.parse(storedUser) : null,
 };
 
 console.log(initialState, "initialState");
@@ -132,7 +132,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.loggedInSession = true;
         state.user = action.payload.user;
-        localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
+        // localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
       })
       .addCase(CheckSession.rejected, (state) => {
         state.isAuthenticated = false;
