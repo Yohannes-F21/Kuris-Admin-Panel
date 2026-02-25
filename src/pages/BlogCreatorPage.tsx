@@ -43,19 +43,38 @@ export function BlogCreatorPage() {
   const handleDropdownValue = (value: string) => {
     setCurrentCategory(value);
     console.log(value);
-    setFormData({ ...formData, category: value });
+    setFormData((prev) => ({ ...prev, category: value }));
   };
 
   const handleSave = async (isDraft: boolean) => {
+    const englishTitle = formData.lang.english.title.trim();
+    const englishContent = formData.lang.english.content.trim();
+    const amharicTitle = formData.lang.amharic.title.trim();
+    const amharicContent = formData.lang.amharic.content.trim();
+    const category = formData.category.trim();
+
+    if (!category) {
+      toast.error("Please select a category.");
+      return;
+    }
+    if (!englishTitle || !englishContent || !amharicTitle || !amharicContent) {
+      toast.error("Please fill in all title and content fields.");
+      return;
+    }
+    if (!thumbnail) {
+      toast.error("Please upload a featured image.");
+      return;
+    }
+
     setLoading(true);
     const blogData = new FormData();
-    blogData.append("lang[english][title]", formData.lang.english.title);
-    blogData.append("lang[english][content]", formData.lang.english.content);
-    blogData.append("lang[amharic][title]", formData.lang.amharic.title);
-    blogData.append("lang[amharic][content]", formData.lang.amharic.content);
-    blogData.append("category", formData.category);
+    blogData.append("lang[english][title]", englishTitle);
+    blogData.append("lang[english][content]", englishContent);
+    blogData.append("lang[amharic][title]", amharicTitle);
+    blogData.append("lang[amharic][content]", amharicContent);
+    blogData.append("category", category);
     blogData.append("isPublished", (!isDraft).toString());
-    if (thumbnail) blogData.append("thumbnail", thumbnail);
+    blogData.append("thumbnail", thumbnail);
 
     try {
       const response = await dispatch(CreateBlog(blogData));
@@ -64,13 +83,13 @@ export function BlogCreatorPage() {
         toast.success(
           `${currentCategory === "blog" ? "Blog" : "News"} ${
             isDraft ? "saved as draft" : "published"
-          } successfully!`
+          } successfully!`,
         );
         navigate("/blogs");
       } else {
         setLoading(false);
         toast.error(
-          `Failed to save ${currentCategory === "blog" ? "Blog" : "News"}`
+          `Failed to save ${currentCategory === "blog" ? "Blog" : "News"}`,
         );
       }
     } catch (error) {

@@ -11,13 +11,14 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { BlogListPage } from "./pages/BlogListPage";
 import { BlogEditorPage } from "./pages/BlogEditorPage";
 import { BlogCreatorPage } from "./pages/BlogCreatorPage";
-import OTPScreen from "./pages/OTPScreen";
 // import { loader as blogLoader } from "./pages/BlogListPage";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import { useEffect } from "react";
 import { CheckSession } from "./features/authActions.ts";
 import { useAppDispatch } from "./features/hooks";
+import { RegisterPage } from "./components/auth/RegisterPage";
+import VerifyEmail from "./pages/VerifyEmail";
 
 // Route Guard Component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -29,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     dispatch(CheckSession());
   }, [dispatch]);
   const isAuthenticated = useSelector(
-    (state: any) => state.auth.isAuthenticated
+    (state: any) => state.auth.isAuthenticated,
   );
 
   if (!isAuthenticated) {
@@ -42,7 +43,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
 const PublicRoute = ({ children }: { children: JSX.Element }) => {
   const isAuthenticated = useSelector(
-    (state: any) => state.auth.isAuthenticated
+    (state: any) => state.auth.isAuthenticated,
   );
 
   if (isAuthenticated) {
@@ -111,9 +112,27 @@ const router = createBrowserRouter([
     path: "verify-otp/*",
     element: (
       <PublicRoute>
-        <OTPScreen />
+        <Navigate to="/login" replace />
       </PublicRoute>
     ),
+  },
+  {
+    path: "/register",
+    element: (
+      <PublicRoute>
+        <RegisterPage />
+      </PublicRoute>
+    ),
+    errorElement: <Error />,
+  },
+  {
+    path: "/verify-email",
+    element: (
+      <PublicRoute>
+        <VerifyEmail />
+      </PublicRoute>
+    ),
+    errorElement: <Error />,
   },
   {
     path: "reset-password*",

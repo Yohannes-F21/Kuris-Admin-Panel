@@ -22,7 +22,16 @@ interface ResetPasswordData {
 
 interface VerifyEmailData {
   token: string;
+  email?: string;
 }
+
+const getErrorMessage = (error: any) => {
+  const data = error?.response?.data;
+  if (typeof data === "string") return data;
+  if (data?.message) return data.message;
+  if (data?.error) return data.error;
+  return error?.message ?? "Request failed";
+};
 
 interface RegisterData {
   name: string;
@@ -49,7 +58,7 @@ export const UserLogin = createAsyncThunk(
       console.log(error);
       return rejectWithValue(error.response?.data);
     }
-  }
+  },
 );
 
 // User Send OTP Thunk
@@ -62,7 +71,7 @@ export const UserSendOTP = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.response?.data);
     }
-  }
+  },
 );
 
 // User Forget Password Thunk
@@ -75,7 +84,7 @@ export const UserForgetPassword = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.response?.data);
     }
-  }
+  },
 );
 
 // User Reset Password Thunk
@@ -88,7 +97,7 @@ export const UserResetPassword = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.response?.data);
     }
-  }
+  },
 );
 
 // User Verify Email Thunk
@@ -96,12 +105,28 @@ export const UserVerifyEmail = createAsyncThunk(
   "user/verify-email",
   async (data: VerifyEmailData, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/user/auth/verify-email`, data);
+      // Some backends expect POST body; others expect GET with token param.
+      // Also token field name may vary; sending both is usually safe.
+      const response = await api.post(`/user/auth/verify-email`, {
+        token: data.token,
+        verificationToken: data.token,
+        email: data.email,
+      });
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      try {
+        const response = await api.get(`/user/auth/verify-email`, {
+          params: { token: data.token, email: data.email },
+        });
+        return response.data;
+      } catch (error2: any) {
+        return rejectWithValue({
+          message: getErrorMessage(error2),
+          raw: error2?.response?.data,
+        });
+      }
     }
-  }
+  },
 );
 
 // Logout Action
@@ -121,7 +146,7 @@ export const UserRegister = createAsyncThunk(
         return rejectWithValue(error.message);
       }
     }
-  }
+  },
 );
 
 // User Change Password Thunk
@@ -132,13 +157,13 @@ export const UserChangePassword = createAsyncThunk(
     try {
       const response = await api.post(
         `/user/auth/change-password/${_id}`,
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data);
     }
-  }
+  },
 );
 
 export const CheckSession = createAsyncThunk(
@@ -150,5 +175,5 @@ export const CheckSession = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.response?.data);
     }
-  }
+  },
 );

@@ -181,13 +181,22 @@ const blogSlice = createSlice({
     });
     builder.addCase(SearchFilterBlogs.fulfilled, (state, action) => {
       state.loading = false;
-      state.blogs = action.payload.blogs; // Update blogs with filtered results
-      state.totalBlogs = action.payload.totalBlogs; // Update total count
-      state.currentPage = action.payload.currentPage; // Update current page
+      const payload: any = action.payload;
+      const blogs = payload?.blogs ?? payload?.data?.blogs ?? [];
+      state.blogs = Array.isArray(blogs) ? blogs : [];
+      state.totalBlogs =
+        payload?.totalBlogs ?? payload?.data?.totalBlogs ?? state.blogs.length;
+      state.currentPage =
+        payload?.currentPage ?? payload?.data?.currentPage ?? 1;
     });
     builder.addCase(SearchFilterBlogs.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload as string;
+      const payload: any = action.payload;
+      state.error =
+        payload?.message ||
+        payload?.error ||
+        (payload as string) ||
+        "Request failed";
     });
   },
 });

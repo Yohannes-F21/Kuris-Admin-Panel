@@ -12,30 +12,30 @@ import { ChevronDown } from "lucide-react";
 export function Dropdown({
   dropdownValue,
   dropdownContent,
+  value,
 }: {
   dropdownValue: (data: string) => void;
   dropdownContent: { value: string; label: string }[];
+  value?: string;
 }) {
-  const [position, setPosition] = React.useState(
-    dropdownContent[0]?.value || ""
+  const isControlled = value !== undefined;
+  const [internalValue, setInternalValue] = React.useState(
+    dropdownContent[0]?.value || "",
   );
-  const [dropdownLabel, setDropdownLabel] = React.useState(
-    dropdownContent[0]?.label || ""
-  );
-  // Update the label when the position changes
-  React.useEffect(() => {
-    const selectedItem = dropdownContent.find(
-      (item) => item.value === position
-    );
-    if (selectedItem) {
-      setDropdownLabel(selectedItem.label);
-    }
-  }, [position, dropdownContent]);
 
-  // ✅ Update parent state only when position changes (NOT during render)
-  React.useEffect(() => {
-    dropdownValue(position);
-  }, [position]); // Runs only when `position` changes
+  const selectedValue = isControlled ? value || "" : internalValue;
+  const selectedItem = dropdownContent.find(
+    (item) => item.value === selectedValue,
+  );
+
+  const dropdownLabel = selectedItem?.label || "Select";
+
+  const handleValueChange = (nextValue: string) => {
+    if (!isControlled) {
+      setInternalValue(nextValue);
+    }
+    dropdownValue(nextValue);
+  };
 
   // const capitalizeFirstLetter = (str: string) =>
   //   str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
@@ -51,7 +51,10 @@ export function Dropdown({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+        <DropdownMenuRadioGroup
+          value={selectedValue}
+          onValueChange={handleValueChange}
+        >
           {dropdownContent.map((item) => (
             <DropdownMenuRadioItem value={item.value} key={item.label}>
               {item.label}

@@ -19,6 +19,11 @@ interface AuthState {
   user: null | any; // Replace `any` with a more specific type if you have a User interface
 }
 
+const getUserFromPayload = (payload: any) => {
+  if (!payload) return null;
+  return payload.user ?? payload;
+};
+
 // Initial state with type annotations
 const storedUser = localStorage.getItem("userInfo");
 const initialState: AuthState = {
@@ -44,7 +49,14 @@ const authSlice = createSlice({
       .addCase(UserLogin.fulfilled, (state, action: PayloadAction<any>) => {
         console.log(action, "slice");
         state.loading = false;
+        state.isAuthenticated = true;
         state.loggedInSession = true;
+
+        const user = getUserFromPayload(action.payload);
+        state.user = user;
+        if (user) {
+          localStorage.setItem("userInfo", JSON.stringify(user));
+        }
       })
       .addCase(UserLogin.rejected, (state) => {
         state.loading = false;

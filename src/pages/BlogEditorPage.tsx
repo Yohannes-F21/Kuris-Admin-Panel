@@ -29,48 +29,142 @@ export function BlogEditorPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [picturePreview, setPicturePreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<string>("");
   const contentType = [
     { value: "news", label: "News" },
     { value: "blog", label: "Blog" },
   ];
 
+  const coerceLang = (lang: any) => {
+    if (!lang) return {};
+    if (typeof lang === "string") {
+      try {
+        return JSON.parse(lang);
+      } catch {
+        return {};
+      }
+    }
+    if (Array.isArray(lang)) {
+      const result: any = {};
+      for (const entry of lang) {
+        if (!entry) continue;
+        if (entry.english || entry.amharic) return entry;
+        const key = entry.lang || entry.language || entry.code;
+        if (!key) continue;
+        result[key] = {
+          title: entry.title ?? "",
+          content: entry.content ?? "",
+        };
+      }
+      return result;
+    }
+    return lang;
+  };
+
+  const pickLangBlock = (langObj: any, keys: string[]) => {
+    for (const key of keys) {
+      const block = langObj?.[key];
+      if (block && typeof block === "object") return block;
+    }
+
+    // Case-insensitive key match
+    if (langObj && typeof langObj === "object") {
+      const langKeys = Object.keys(langObj);
+      for (const desiredKey of keys) {
+        const found = langKeys.find(
+          (k) => k.toLowerCase() === desiredKey.toLowerCase(),
+        );
+        if (found) {
+          const block = langObj?.[found];
+          if (block && typeof block === "object") return block;
+        }
+      }
+    }
+    return {};
+  };
+
+  const normalizeField = (value: any) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") return value;
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  };
+
   // Fetch blog data on component mount
   useEffect(() => {
     if (id) {
+      setFetching(true);
       dispatch(GetBlog({ _id: id })).then((response) => {
         if (response.meta.requestStatus === "fulfilled") {
-          const { blog } = response.payload;
+          const blog =
+            response.payload?.blog ??
+            response.payload?.data?.blog ??
+            response.payload?.data ??
+            response.payload;
+
+          const category = blog?.category || "";
+          const langObj = coerceLang(blog?.lang);
+          const englishBlock = pickLangBlock(langObj, ["english", "en"]);
+          const amharicBlock = pickLangBlock(langObj, ["amharic", "amh", "am"]);
+
+          const englishTitle = normalizeField(
+            englishBlock?.title ??
+              langObj?.englishTitle ??
+              langObj?.enTitle ??
+              blog?.englishTitle ??
+              blog?.title,
+          );
+          const englishContent = normalizeField(
+            englishBlock?.content ??
+              langObj?.englishContent ??
+              langObj?.enContent ??
+              blog?.englishContent ??
+              blog?.content,
+          );
+          const amharicTitle = normalizeField(
+            amharicBlock?.title ?? langObj?.amharicTitle ?? langObj?.amTitle,
+          );
+          const amharicContent = normalizeField(
+            amharicBlock?.content ??
+              langObj?.amharicContent ??
+              langObj?.amContent,
+          );
+
           setFormData({
             lang: {
               english: {
-                title: blog.lang?.english?.title || "",
-                content: blog.lang?.english?.content || "",
+                title: englishTitle,
+                content: englishContent,
               },
               amharic: {
-                title: blog.lang?.amharic?.title || "",
-                content: blog.lang?.amharic?.content || "",
+                title: amharicTitle,
+                content: amharicContent,
               },
             },
-            category: blog.category || "",
+            category,
           });
-          setPicturePreview(
-            blog.thumbnail || "https://placehold.co/600x400?text=Cover+Image"
-          );
+          setCurrentCategory(category);
+          setPicturePreview(blog?.thumbnail || "");
         } else {
           toast.error(
             `Failed to fetch ${
               currentCategory === "blog" ? "Blog" : "News"
-            } data`
+            } data`,
           );
         }
+
+        setFetching(false);
       });
     }
   }, [id, dispatch]);
   const handleDropdownValue = (value: string) => {
     setCurrentCategory(value);
     console.log(value);
-    setFormData({ ...formData, category: value });
+    setFormData((prev) => ({ ...prev, category: value }));
   };
 
   // Handle thumbnail upload
@@ -101,49 +195,65 @@ export function BlogEditorPage() {
 
   // Save draft or publish blog
   const handleSave = async (isDraft: boolean) => {
+    const englishTitle = formData.lang.english.title.trim();
+    const englishContent = formData.lang.english.content.trim();
+    const amharicTitle = formData.lang.amharic.title.trim();
+    const amharicContent = formData.lang.amharic.content.trim();
+    const category = formData.category.trim();
+    const hasAnyImage = Boolean(
+      thumbnail || thumbnailPreview || picturePreview,
+    );
+
+    if (!category) {
+      toast.error("Please select a category.");
+      return;
+    }
+    if (!englishTitle || !englishContent || !amharicTitle || !amharicContent) {
+      toast.error("Please fill in all title and content fields.");
+      return;
+    }
+    if (!hasAnyImage) {
+      toast.error("Please upload a featured image.");
+      return;
+    }
+
     setLoading(true);
 
     const formDataToSend = new FormData();
-    formDataToSend.append("lang[english][title]", formData.lang.english.title);
-    formDataToSend.append(
-      "lang[english][content]",
-      formData.lang.english.content
-    );
-    formDataToSend.append("lang[amharic][title]", formData.lang.amharic.title);
-    formDataToSend.append(
-      "lang[amharic][content]",
-      formData.lang.amharic.content
-    );
-    formDataToSend.append("category", formData.category);
+    formDataToSend.append("lang[english][title]", englishTitle);
+    formDataToSend.append("lang[english][content]", englishContent);
+    formDataToSend.append("lang[amharic][title]", amharicTitle);
+    formDataToSend.append("lang[amharic][content]", amharicContent);
+    formDataToSend.append("category", category);
     formDataToSend.append("isPublished", (!isDraft).toString());
     if (thumbnail) formDataToSend.append("thumbnail", thumbnail);
 
     try {
       if (id) {
         const response = await dispatch(
-          UpdateBlog({ formData: formDataToSend, _id: id })
+          UpdateBlog({ formData: formDataToSend, _id: id }),
         );
         if (response.meta.requestStatus === "fulfilled") {
           toast.success(
             `${currentCategory === "blog" ? "Blog" : "News"} ${
               isDraft ? "saved as draft" : "published"
-            } successfully!`
+            } successfully!`,
           );
           navigate("/blogs");
         } else {
           toast.error(
-            `Failed to save ${currentCategory === "blog" ? "Blog" : "News"}`
+            `Failed to save ${currentCategory === "blog" ? "Blog" : "News"}`,
           );
         }
       } else {
         toast.error(
-          `${currentCategory === "blog" ? "Blog" : "News"} ID is missing.`
+          `${currentCategory === "blog" ? "Blog" : "News"} ID is missing.`,
         );
       }
     } catch (error) {
       console.error(
         `Error saving ${currentCategory === "blog" ? "Blog" : "News"}:`,
-        error
+        error,
       );
       toast.error("An unexpected error occurred.");
     } finally {
@@ -164,12 +274,15 @@ export function BlogEditorPage() {
         <div className="flex items-center space-x-3">
           <Button
             variant="outline"
-            disabled={loading}
+            disabled={loading || fetching}
             onClick={() => handleSave(true)}
           >
             {loading ? "Saving Draft..." : "Save as Draft"}
           </Button>
-          <Button disabled={loading} onClick={() => handleSave(false)}>
+          <Button
+            disabled={loading || fetching}
+            onClick={() => handleSave(false)}
+          >
             <Save className="w-4 h-4 mr-2" />
             {loading ? "Publishing..." : "Publish"}
           </Button>
@@ -178,6 +291,7 @@ export function BlogEditorPage() {
       <Dropdown
         dropdownValue={handleDropdownValue}
         dropdownContent={contentType}
+        value={formData.category}
       ></Dropdown>
 
       {/* Main Content */}
