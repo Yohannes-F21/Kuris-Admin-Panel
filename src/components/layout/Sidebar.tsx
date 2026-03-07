@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 
-import { authLogout } from "../../features/authActions";
+import { authLogout, UserLogout } from "../../features/authActions";
+import { useAppDispatch } from "../../features/hooks";
 import {
   LayoutDashboard,
   FileText,
@@ -15,11 +15,17 @@ import {
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    dispatch(authLogout());
+  const handleLogout = async () => {
+    const response = await dispatch(UserLogout());
+
+    if (UserLogout.rejected.match(response)) {
+      dispatch(authLogout());
+    }
+
+    setIsOpen(false);
     navigate("/login");
   };
 

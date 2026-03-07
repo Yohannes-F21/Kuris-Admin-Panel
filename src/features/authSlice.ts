@@ -9,6 +9,10 @@ import {
   UserVerifyEmail,
   authLogout,
   CheckSession,
+  UserLogout,
+  AuthErrorPayload,
+  AuthResponse,
+  AuthUser,
 } from "./authActions";
 
 // Define the shape of the state
@@ -16,12 +20,42 @@ interface AuthState {
   isAuthenticated: boolean;
   loggedInSession: boolean;
   loading: boolean;
-  user: null | any; // Replace `any` with a more specific type if you have a User interface
+  sessionChecked: boolean;
+  error: string | null;
+  user: AuthUser | null;
 }
 
-const getUserFromPayload = (payload: any) => {
+const getUserFromPayload = (
+  payload: AuthResponse | AuthUser | null | undefined,
+): AuthUser | null => {
   if (!payload) return null;
-  return payload.user ?? payload;
+  return (payload.user ?? payload) as AuthUser;
+};
+
+const persistUser = (user: AuthUser | null) => {
+  if (user) {
+    localStorage.setItem("userInfo", JSON.stringify(user));
+    return;
+  }
+
+  localStorage.removeItem("userInfo");
+};
+
+const clearAuthStorage = () => {
+  localStorage.removeItem("userInfo");
+  localStorage.removeItem("blogContent");
+};
+
+const setPendingState = (state: AuthState) => {
+  state.loading = true;
+  state.error = null;
+};
+
+const setRejectedState = (state: AuthState, action: { payload?: unknown }) => {
+  state.loading = false;
+  state.error =
+    (action.payload as AuthErrorPayload | undefined)?.message ??
+    "Request failed";
 };
 
 // Initial state with type annotations
@@ -30,10 +64,10 @@ const initialState: AuthState = {
   isAuthenticated: !!storedUser,
   loggedInSession: !!storedUser,
   loading: false,
+  sessionChecked: !!storedUser,
+  error: null,
   user: storedUser ? JSON?.parse(storedUser) : null,
 };
-
-console.log(initialState, "initialState");
 
 // Create the slice
 const authSlice = createSlice({
@@ -43,115 +77,137 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // User Login
-      .addCase(UserLogin.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(UserLogin.fulfilled, (state, action: PayloadAction<any>) => {
-        console.log(action, "slice");
-        state.loading = false;
-        state.isAuthenticated = true;
-        state.loggedInSession = true;
+      .addCase(UserLogin.pending, setPendingState)
+      .addCase(
+        UserLogin.fulfilled,
+        (state, action: PayloadAction<AuthResponse>) => {
+          state.loading = false;
+          state.error = null;
+          state.isAuthenticated = true;
+          state.loggedInSession = true;
+          state.sessionChecked = true;
 
-        const user = getUserFromPayload(action.payload);
-        state.user = user;
-        if (user) {
-          localStorage.setItem("userInfo", JSON.stringify(user));
-        }
-      })
-      .addCase(UserLogin.rejected, (state) => {
-        state.loading = false;
+          const user = getUserFromPayload(action.payload);
+          state.user = user;
+          persistUser(user);
+        },
+      )
+      .addCase(UserLogin.rejected, (state, action) => {
+        setRejectedState(state, action);
+        state.sessionChecked = true;
       })
 
       // Logout
       .addCase(authLogout, (state) => {
         state.isAuthenticated = false;
         state.loggedInSession = false;
+        state.loading = false;
+        state.sessionChecked = true;
+        state.error = null;
         state.user = null;
-        localStorage.removeItem("userInfo");
-        localStorage.removeItem("blogContent");
+        clearAuthStorage();
+      })
+      .addCase(UserLogout.pending, setPendingState)
+      .addCase(UserLogout.fulfilled, (state) => {
+        state.isAuthenticated = false;
+        state.loggedInSession = false;
+        state.loading = false;
+        state.sessionChecked = true;
+        state.error = null;
+        state.user = null;
+        clearAuthStorage();
+      })
+      .addCase(UserLogout.rejected, (state, action) => {
+        setRejectedState(state, action);
+        state.isAuthenticated = false;
+        state.loggedInSession = false;
+        state.sessionChecked = true;
+        state.user = null;
+        clearAuthStorage();
       })
 
       // Send OTP
-      .addCase(UserSendOTP.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(UserSendOTP.fulfilled, (state, action: PayloadAction<any>) => {
-        state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.loggedInSession = false;
-        localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
-      })
-      .addCase(UserSendOTP.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(UserSendOTP.pending, setPendingState)
+      .addCase(
+        UserSendOTP.fulfilled,
+        (state, action: PayloadAction<AuthResponse>) => {
+          state.loading = false;
+          state.error = null;
+          state.isAuthenticated = true;
+          state.user = getUserFromPayload(action.payload);
+          state.loggedInSession = false;
+          state.sessionChecked = true;
+          persistUser(state.user);
+        },
+      )
+      .addCase(UserSendOTP.rejected, setRejectedState)
 
       // Forget Password
-      .addCase(UserForgetPassword.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(UserForgetPassword.pending, setPendingState)
       .addCase(UserForgetPassword.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
       })
-      .addCase(UserForgetPassword.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(UserForgetPassword.rejected, setRejectedState)
 
       // Reset Password
-      .addCase(UserResetPassword.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(UserResetPassword.pending, setPendingState)
       .addCase(UserResetPassword.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
       })
-      .addCase(UserResetPassword.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(UserResetPassword.rejected, setRejectedState)
 
       // Verify Email
-      .addCase(UserVerifyEmail.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(UserVerifyEmail.pending, setPendingState)
       .addCase(UserVerifyEmail.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
       })
-      .addCase(UserVerifyEmail.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(UserVerifyEmail.rejected, setRejectedState)
 
       // User Register
-      .addCase(UserRegister.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(UserRegister.pending, setPendingState)
       .addCase(UserRegister.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
       })
-      .addCase(UserRegister.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(UserRegister.rejected, setRejectedState)
 
       // Change Password
-      .addCase(UserChangePassword.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(UserChangePassword.pending, setPendingState)
       .addCase(UserChangePassword.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
       })
-      .addCase(UserChangePassword.rejected, (state) => {
+      .addCase(UserChangePassword.rejected, setRejectedState)
+      .addCase(CheckSession.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        CheckSession.fulfilled,
+        (state, action: PayloadAction<AuthResponse>) => {
+          const user = getUserFromPayload(action.payload);
+
+          state.loading = false;
+          state.error = null;
+          state.sessionChecked = true;
+          state.isAuthenticated = true;
+          state.loggedInSession = true;
+          state.user = user;
+          persistUser(user);
+        },
+      )
+      .addCase(CheckSession.rejected, (state, action) => {
         state.loading = false;
-      })
-      .addCase(CheckSession.fulfilled, (state, action: PayloadAction<any>) => {
-        state.isAuthenticated = true;
-        state.loggedInSession = true;
-        state.user = action.payload.user;
-        // localStorage.setItem("userInfo", JSON.stringify(action.payload.user));
-      })
-      .addCase(CheckSession.rejected, (state) => {
+        state.error =
+          (action.payload as AuthErrorPayload | undefined)?.message ?? null;
+        state.sessionChecked = true;
         state.isAuthenticated = false;
         state.loggedInSession = false;
         state.user = null;
-        localStorage.removeItem("userInfo");
-        localStorage.removeItem("blogContent");
+        clearAuthStorage();
       });
   },
 });

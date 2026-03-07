@@ -1,21 +1,17 @@
 import React, { useState } from "react";
 import { Lock, Mail, User } from "lucide-react";
-
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch } from "../../features/hooks";
 import { UserRegister } from "../../features/authActions";
+import { notifyError, notifySuccess } from "../../lib/toast";
 
 interface FormValues {
   name: string;
   email: string;
   password: string;
 }
-
-const notify = (text: string) => toast(text);
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -41,105 +37,135 @@ export const RegisterPage: React.FC = () => {
       !formValue.email.trim() ||
       !formValue.password.trim()
     ) {
-      return notify("Please fill in all fields.");
+      return notifyError(null, "Please fill in all fields.");
     }
 
     setLoading(true);
     try {
       const response = await dispatch(UserRegister(formValue));
 
-      if (response.meta.requestStatus === "fulfilled") {
-        notify("Registration successful. Please verify your email.");
+      if (UserRegister.fulfilled.match(response)) {
+        notifySuccess(
+          response.payload,
+          "Registration successful. Please verify your email.",
+        );
         setLoading(false);
         return navigate("/login");
       }
 
       setLoading(false);
-      notify("Registration failed. Please try again.");
+      notifyError(response.payload, "Registration failed. Please try again.");
     } catch {
       setLoading(false);
-      notify("An unexpected error occurred.");
+      notifyError(null, "An unexpected error occurred.");
     }
   };
 
   return (
     <>
-      <ToastContainer />
+      <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gray-50 px-4 py-10">
+        <div className="absolute -top-40 -left-60 h-96 w-96 animate-pulse rounded-full bg-primary-200/50 blur-3xl opacity-50"></div>
+        <div className="absolute bottom-0 right-0 h-[500px] w-[500px] rounded-full bg-primary-100/40 blur-3xl opacity-60"></div>
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary-50 to-transparent"></div>
 
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Create Account</h1>
-            <p className="text-gray-500">
+        <div className="relative z-10 w-full max-w-md space-y-8 rounded-3xl border border-white/60 bg-white/85 p-8 shadow-xl shadow-primary-900/5 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
+          <div className="space-y-4 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-100">
+              <User className="h-6 w-6" />
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-primary-700">
+              Kuri<span className="text-gray-900">Admin</span>
+            </h1>
+            <h2 className="text-xl font-semibold text-gray-700">
+              Create Account
+            </h2>
+            <p className="text-sm text-gray-500">
               Register and verify your email to sign in
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="name">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label
+                className="ml-1 text-sm font-medium text-gray-700"
+                htmlFor="name"
+              >
                 Name
               </label>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+              <div className="relative group">
                 <Input
                   id="name"
                   type="text"
                   placeholder="Enter your name"
-                  className="pl-9"
+                  className="h-11 bg-gray-50/60 pl-10 shadow-sm"
                   name="name"
                   value={formValue.name}
                   onChange={handleChange}
                 />
+                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors duration-200" />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="email">
+            <div className="space-y-2">
+              <label
+                className="ml-1 text-sm font-medium text-gray-700"
+                htmlFor="email"
+              >
                 Email
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+              <div className="relative group">
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="pl-9"
+                  className="h-11 bg-gray-50/60 pl-10 shadow-sm"
                   name="email"
                   value={formValue.email}
                   onChange={handleChange}
                 />
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors duration-200" />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="password">
+            <div className="space-y-2">
+              <label
+                className="ml-1 text-sm font-medium text-gray-700"
+                htmlFor="password"
+              >
                 Password
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+              <div className="relative group">
                 <Input
                   id="password"
                   type="password"
                   placeholder="Create a password"
-                  className="pl-9"
+                  className="h-11 bg-gray-50/60 pl-10 shadow-sm"
                   name="password"
                   value={formValue.password}
                   onChange={handleChange}
                 />
+                <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors duration-200" />
               </div>
             </div>
 
-            <Button className="w-full" disabled={loading}>
-              {loading ? "Creating..." : "Register"}
+            <Button
+              type="submit"
+              className="w-full h-11 text-base font-semibold shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              disabled={loading}
+              size="lg"
+            >
+              {loading ? "Creating Account..." : "Register"}
             </Button>
 
-            <div className="text-center">
+            <div className="border-t border-gray-100 pt-5 text-center">
+              <span className="text-sm text-gray-500">
+                Already have an account?{" "}
+              </span>
               <Link
                 to="/login"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline transition-colors"
               >
-                Back to login
+                Sign in
               </Link>
             </div>
           </form>

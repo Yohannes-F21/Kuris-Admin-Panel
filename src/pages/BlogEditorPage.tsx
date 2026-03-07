@@ -6,10 +6,10 @@ import "react-quill/dist/quill.snow.css";
 
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import toast from "react-hot-toast";
 import { useAppDispatch } from "../features/hooks";
 import { UpdateBlog, GetBlog } from "../features/blogActions";
 import { Dropdown } from "../components/Dropdown";
+import { notifyError, notifySuccess } from "../lib/toast";
 
 export function BlogEditorPage() {
   const navigate = useNavigate();
@@ -99,7 +99,7 @@ export function BlogEditorPage() {
     if (id) {
       setFetching(true);
       dispatch(GetBlog({ _id: id })).then((response) => {
-        if (response.meta.requestStatus === "fulfilled") {
+        if (GetBlog.fulfilled.match(response)) {
           const blog =
             response.payload?.blog ??
             response.payload?.data?.blog ??
@@ -150,7 +150,8 @@ export function BlogEditorPage() {
           setCurrentCategory(category);
           setPicturePreview(blog?.thumbnail || "");
         } else {
-          toast.error(
+          notifyError(
+            response.payload,
             `Failed to fetch ${
               currentCategory === "blog" ? "Blog" : "News"
             } data`,
@@ -181,7 +182,7 @@ export function BlogEditorPage() {
       };
       reader.onerror = () => {
         console.error("Error reading file");
-        toast.error("Failed to load image preview.");
+        notifyError(null, "Failed to load image preview.");
       };
       reader.readAsDataURL(file);
     }
@@ -205,15 +206,15 @@ export function BlogEditorPage() {
     );
 
     if (!category) {
-      toast.error("Please select a category.");
+      notifyError(null, "Please select a category.");
       return;
     }
     if (!englishTitle || !englishContent || !amharicTitle || !amharicContent) {
-      toast.error("Please fill in all title and content fields.");
+      notifyError(null, "Please fill in all title and content fields.");
       return;
     }
     if (!hasAnyImage) {
-      toast.error("Please upload a featured image.");
+      notifyError(null, "Please upload a featured image.");
       return;
     }
 
@@ -233,20 +234,23 @@ export function BlogEditorPage() {
         const response = await dispatch(
           UpdateBlog({ formData: formDataToSend, _id: id }),
         );
-        if (response.meta.requestStatus === "fulfilled") {
-          toast.success(
+        if (UpdateBlog.fulfilled.match(response)) {
+          notifySuccess(
+            response.payload,
             `${currentCategory === "blog" ? "Blog" : "News"} ${
               isDraft ? "saved as draft" : "published"
             } successfully!`,
           );
           navigate("/blogs");
         } else {
-          toast.error(
+          notifyError(
+            response.payload,
             `Failed to save ${currentCategory === "blog" ? "Blog" : "News"}`,
           );
         }
       } else {
-        toast.error(
+        notifyError(
+          null,
           `${currentCategory === "blog" ? "Blog" : "News"} ID is missing.`,
         );
       }
@@ -255,7 +259,7 @@ export function BlogEditorPage() {
         `Error saving ${currentCategory === "blog" ? "Blog" : "News"}:`,
         error,
       );
-      toast.error("An unexpected error occurred.");
+      notifyError(error, "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }

@@ -5,10 +5,10 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import toast from "react-hot-toast";
 import { useAppDispatch } from "../features/hooks";
 import { CreateBlog } from "../features/blogActions";
 import { Dropdown } from "../components/Dropdown";
+import { notifyError, notifySuccess } from "../lib/toast";
 
 export function BlogCreatorPage() {
   const navigate = useNavigate();
@@ -54,15 +54,15 @@ export function BlogCreatorPage() {
     const category = formData.category.trim();
 
     if (!category) {
-      toast.error("Please select a category.");
+      notifyError(null, "Please select a category.");
       return;
     }
     if (!englishTitle || !englishContent || !amharicTitle || !amharicContent) {
-      toast.error("Please fill in all title and content fields.");
+      notifyError(null, "Please fill in all title and content fields.");
       return;
     }
     if (!thumbnail) {
-      toast.error("Please upload a featured image.");
+      notifyError(null, "Please upload a featured image.");
       return;
     }
 
@@ -78,9 +78,10 @@ export function BlogCreatorPage() {
 
     try {
       const response = await dispatch(CreateBlog(blogData));
-      if (response.meta.requestStatus === "fulfilled") {
+      if (CreateBlog.fulfilled.match(response)) {
         setLoading(false);
-        toast.success(
+        notifySuccess(
+          response.payload,
           `${currentCategory === "blog" ? "Blog" : "News"} ${
             isDraft ? "saved as draft" : "published"
           } successfully!`,
@@ -88,13 +89,14 @@ export function BlogCreatorPage() {
         navigate("/blogs");
       } else {
         setLoading(false);
-        toast.error(
+        notifyError(
+          response.payload,
           `Failed to save ${currentCategory === "blog" ? "Blog" : "News"}`,
         );
       }
     } catch (error) {
       setLoading(false);
-      toast.error("An unexpected error occurred.");
+      notifyError(error, "An unexpected error occurred.");
     }
   };
 

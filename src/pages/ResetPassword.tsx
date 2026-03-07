@@ -1,13 +1,10 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-// import { useDispatch } from "react-redux";
 import { UserResetPassword } from "../features/authActions";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/Button"; // Import shadcn/ui Button
-// import { AppDispatch } from "../features/store"; // Import AppDispatch for typed dispatch
-import { useAppDispatch } from "../features/hooks"; // Custom hook for typed dispatch
+import { Button } from "../components/ui/Button";
+import { useAppDispatch } from "../features/hooks";
+import { notifyError, notifySuccess } from "../lib/toast";
 
 // Define types for form values
 interface FormValues {
@@ -22,11 +19,8 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-// Notification function
-const notify = (text: string) => toast(text);
-
 const ResetPassword: React.FC = () => {
-  const dispatch = useAppDispatch(); // Use the custom hook for typed dispatch
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const query = useQuery();
 
@@ -83,11 +77,11 @@ const ResetPassword: React.FC = () => {
 
     const passwordError = validatePassword(formValue.password);
     const confirmPasswordError = validateConfirmPassword(
-      formValue.confirmPassword
+      formValue.confirmPassword,
     );
 
     if (passwordError || confirmPasswordError) {
-      notify(passwordError || confirmPasswordError);
+      notifyError(passwordError || confirmPasswordError, "Invalid password.");
       return;
     }
 
@@ -95,23 +89,18 @@ const ResetPassword: React.FC = () => {
 
     try {
       const response = await dispatch(UserResetPassword(formValue));
-      // const payload = response.payload as { message?: string }; // Type assertion for payload
 
-      if (response.meta.requestStatus === "fulfilled") {
-        notify("Reset Successful");
+      if (UserResetPassword.fulfilled.match(response)) {
+        notifySuccess(response.payload, "Password reset successful.");
         setLoading(false);
         return navigate("/dashboard");
       }
 
-      if (response.meta.requestStatus === "rejected") {
-        console.log(response.payload.message);
-
-        setLoading(false);
-        notify("There's something wrong");
-      }
+      setLoading(false);
+      notifyError(response.payload, "Unable to reset password.");
     } catch (error) {
       setLoading(false);
-      notify("An unexpected error occurred.");
+      notifyError(error, "An unexpected error occurred.");
     }
   };
 
@@ -174,9 +163,6 @@ const ResetPassword: React.FC = () => {
           </div>
         </form>
       </div>
-
-      {/* Toast Notifications */}
-      <ToastContainer />
     </div>
   );
 };

@@ -2,21 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Lock, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../ui/Button";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Input } from "../ui/Input";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { UserLogin, UserForgetPassword } from "../../features/authActions";
 import { useAppDispatch } from "../../features/hooks"; // Import the custom hook
+import { notifyError, notifySuccess } from "../../lib/toast";
 
 // Define types for form values
 interface FormValues {
   email: string;
   password: string;
 }
-
-// Notification function
-const notify = (text: string) => toast(text);
 
 export const LoginPage: React.FC = () => {
   const { isAuthenticated } = useSelector((state: any) => state.auth);
@@ -49,25 +46,22 @@ export const LoginPage: React.FC = () => {
         const response = await dispatch(UserLogin(formValue));
 
         if (UserLogin.fulfilled.match(response)) {
-          notify("Login Successful");
+          notifySuccess(response.payload, "Login successful.");
           setLoading(false);
           return navigate("/dashboard");
         }
 
         if (UserLogin.rejected.match(response)) {
           setLoading(false);
-          const message =
-            (response.payload as { message?: string } | undefined)?.message ||
-            "Wrong credentials!";
-          notify(message);
+          notifyError(response.payload, "Wrong credentials!");
         }
       } catch (error) {
         setLoading(false);
-        notify("An unexpected error occurred.");
+        notifyError(error, "An unexpected error occurred.");
       }
     } else {
       setLoading(false);
-      notify("Please fill in all fields.");
+      notifyError(null, "Please fill in all fields.");
     }
   };
 
@@ -94,7 +88,7 @@ export const LoginPage: React.FC = () => {
     const { email } = forgetPassword;
 
     if (!email.trim()) {
-      return notify("Please fill in all details");
+      return notifyError(null, "Please fill in all details");
     }
 
     setForgetLoading(true);
@@ -103,34 +97,35 @@ export const LoginPage: React.FC = () => {
 
       if (UserForgetPassword.rejected.match(response)) {
         setForgetLoading(false);
-        return notify(
-          (response.payload as { message?: string } | undefined)?.message ||
-            "User not found",
-        );
+        return notifyError(response.payload, "User not found");
       }
 
       // Reset form and close modal
       setForgetPassword({ email: "" });
       setOpen(false);
       setForgetLoading(false);
-      notify("Please check your email for the reset password link!");
+      notifySuccess(
+        response.payload,
+        "Please check your email for the reset password link!",
+      );
     } catch (error) {
       setForgetLoading(false);
-      notify("An unexpected error occurred.");
+      notifyError(error, "An unexpected error occurred.");
     }
   };
 
   return (
     <>
-      <ToastContainer />
-
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 relative overflow-hidden">
-        {/* Decorative background elements */}
+      <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gray-50 px-4 py-10">
         <div className="absolute -top-40 -left-60 w-96 h-96 bg-primary-200/50 rounded-full blur-3xl opacity-50 z-0 animate-pulse"></div>
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-primary-100/40 rounded-full blur-3xl opacity-60 z-0"></div>
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary-50 to-transparent"></div>
 
-        <div className="w-full max-w-md p-8 space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 relative z-10 transition-all duration-300 hover:shadow-2xl">
-          <div className="text-center space-y-3">
+        <div className="relative z-10 w-full max-w-md space-y-8 rounded-3xl border border-white/60 bg-white/85 p-8 shadow-xl shadow-primary-900/5 backdrop-blur-sm transition-all duration-300 hover:shadow-2xl">
+          <div className="space-y-4 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-100">
+              <Lock className="h-6 w-6" />
+            </div>
             <h1 className="text-3xl font-extrabold text-primary-700 tracking-tight">
               Kuri<span className="text-gray-900">Admin</span>
             </h1>
@@ -142,7 +137,6 @@ export const LoginPage: React.FC = () => {
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
             <div className="space-y-2">
               <label
                 className="text-sm font-medium text-gray-700 block ml-1"
@@ -150,12 +144,12 @@ export const LoginPage: React.FC = () => {
               >
                 Email Address
               </label>
-              <div className="relative group">
-                <input
+              <div className="group relative">
+                <Input
                   id="email"
                   type="email"
                   placeholder="name@company.com"
-                  className="w-full pl-10 h-11 bg-gray-50/50 focus:bg-white transition-all shadow-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="h-11 bg-gray-50/60 pl-10 shadow-sm"
                   name="email"
                   value={formValue.email}
                   onChange={handleChange}
@@ -164,7 +158,6 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Password Field */}
             <div className="space-y-2">
               <label
                 className="text-sm font-medium text-gray-700 block ml-1"
@@ -172,12 +165,12 @@ export const LoginPage: React.FC = () => {
               >
                 Password
               </label>
-              <div className="relative group">
-                <input
+              <div className="group relative">
+                <Input
                   id="password"
                   type="password"
-                  placeholder=""
-                  className="w-full pl-10 h-11 bg-gray-50/50 focus:bg-white transition-all shadow-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  placeholder="Enter your password"
+                  className="h-11 bg-gray-50/60 pl-10 shadow-sm"
                   name="password"
                   value={formValue.password}
                   onChange={handleChange}
@@ -186,7 +179,6 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Remember Me and Forgot Password */}
             <div className="flex items-center justify-end">
               <span
                 onClick={() => setOpen(true)}
@@ -196,7 +188,6 @@ export const LoginPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               className="w-full h-11 text-base font-semibold bg-primary-600 hover:bg-primary-700 text-white shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
@@ -213,9 +204,9 @@ export const LoginPage: React.FC = () => {
               )}
             </Button>
 
-            <div className="text-center pt-2">
+            <div className="border-t border-gray-100 pt-5 text-center">
               <span className="text-sm text-gray-500">
-                Don`t have an account?{" "}
+                Don&apos;t have an account?{" "}
               </span>
               <Link
                 to="/register"
@@ -231,10 +222,8 @@ export const LoginPage: React.FC = () => {
       {
         /* Forgot Password Dialog */
         open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity">
-            {/* Modal Container */}
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-all scale-100 border border-gray-100">
-              {/* Header */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 px-4 backdrop-blur-sm transition-opacity">
+            <div className="w-full max-w-md scale-100 transform rounded-2xl border border-gray-100 bg-white p-8 shadow-2xl transition-all">
               <div className="text-center mb-6">
                 <h3 className="text-xl font-bold text-gray-900">
                   Reset Password
@@ -245,7 +234,6 @@ export const LoginPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Form */}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -253,7 +241,6 @@ export const LoginPage: React.FC = () => {
                 }}
                 className="space-y-6"
               >
-                {/* Email Field */}
                 <div className="space-y-2">
                   <label
                     htmlFor="reset-email"
@@ -261,8 +248,8 @@ export const LoginPage: React.FC = () => {
                   >
                     Email Address
                   </label>
-                  <div className="relative group">
-                    <input
+                  <div className="group relative">
+                    <Input
                       id="reset-email"
                       name="email"
                       type="email"
@@ -270,13 +257,12 @@ export const LoginPage: React.FC = () => {
                       value={forgetPassword.email}
                       onChange={handleForgetPassword}
                       required
-                      className="w-full pl-10 h-11 bg-gray-50/50 focus:bg-white transition-all shadow-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                      className="h-11 bg-gray-50/60 pl-10 shadow-sm"
                     />
                     <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
                   </div>
                 </div>
 
-                {/* Submit Button */}
                 <Button
                   type="submit"
                   className="w-full h-11 shadow-md hover:shadow-lg transition-all bg-primary-600 hover:bg-primary-700 text-white"
@@ -285,7 +271,6 @@ export const LoginPage: React.FC = () => {
                   {forgetLoading ? "Sending Link..." : "Send Reset Link"}
                 </Button>
 
-                {/* Footer */}
                 <div className="mt-2 text-center">
                   <button
                     type="button"

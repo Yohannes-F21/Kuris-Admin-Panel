@@ -1,99 +1,118 @@
-import React, { useState } from "react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import React, { useMemo, useState } from "react";
 import { UserChangePassword } from "../features/authActions";
 import { useNavigate } from "react-router-dom";
-// import { Button } from "../components/ui/Button"; // Import shadcn/ui Button
-// import { AppDispatch } from "../features/store"; // Import AppDispatch for typed dispatch
-import { useAppDispatch } from "../features/hooks";
-const notify = (text: string) => toast(text);
-const storedUser = localStorage.getItem("userInfo");
-
-const user = storedUser ? JSON?.parse(storedUser) : null;
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { useAppDispatch, useAppSelector } from "../features/hooks";
+import { notifyError, notifySuccess } from "../lib/toast";
 
 interface FormValues {
   _id: string;
-  email: string;
   oldPassword: string;
   newPassword: string;
+  confirmPassword: string;
 }
-const Profile = () => {
-  const dispatch = useAppDispatch(); // Use the custom hook for typed dispatch
-  const navigate = useNavigate();
-  //  const query = useQuery();
 
-  // State for form values and loading
+const Profile = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const user = useAppSelector((state) => state.auth.user);
+
   const [formValue, setFormValue] = useState<FormValues>({
-    _id: user._id,
-    email: user.email,
+    _id: typeof user?._id === "string" ? user._id : "",
     oldPassword: "",
     newPassword: "",
+    confirmPassword: "",
   });
-  const [isDisabled, setIsDisabled] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Regular expression for strong password validation
-  const regEx = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,}$/;
+  const passwordError = useMemo(() => {
+    if (!formValue.newPassword) return "";
 
-  // Handle input changes
+    const regEx = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
+    if (!regEx.test(formValue.newPassword)) {
+      return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+    }
+
+    if (
+      formValue.confirmPassword &&
+      formValue.newPassword !== formValue.confirmPassword
+    ) {
+      return "New password and confirmation do not match.";
+    }
+
+    return "";
+  }, [formValue.confirmPassword, formValue.newPassword]);
+
+  const isDisabled =
+    loading ||
+    !formValue._id ||
+    !formValue.oldPassword.trim() ||
+    !formValue.newPassword.trim() ||
+    !formValue.confirmPassword.trim() ||
+    Boolean(passwordError);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormValue((prev) => ({ ...prev, [name]: value }));
-
-    // Revalidate fields
-    if (name === "newPassword") {
-      validatePassword(value);
-    }
   };
 
-  // Validate password strength
-  const validatePassword = (password: string) => {
-    if (!regEx.test(password)) {
-      setIsDisabled(true);
-      console.log(isDisabled);
-
-      return "Password must be 8+ characters long & contain at least a special character, a number, an uppercase, and a lowercase character!";
-    }
-    setIsDisabled(false);
-    return "";
-  };
-
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!formValue._id) {
+      notifyError(null, "Unable to identify the current user.");
+      return;
+    }
+
+    if (passwordError) {
+      notifyError(passwordError, "Please fix the password errors.");
+      return;
+    }
 
     setLoading(true);
 
     try {
-      const response = await dispatch(UserChangePassword(formValue));
-      // const payload = response.payload as { message?: string }; // Type assertion for payload
+      const response = await dispatch(
+        UserChangePassword({
+          _id: formValue._id,
+          oldPassword: formValue.oldPassword.trim(),
+          newPassword: formValue.newPassword.trim(),
+        }),
+      );
 
-      if (response.meta.requestStatus === "fulfilled") {
-        notify("Password Changed Successfully");
+      if (UserChangePassword.fulfilled.match(response)) {
+        notifySuccess(response.payload, "Password changed successfully.");
         setLoading(false);
+        setFormValue((prev) => ({
+          ...prev,
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }));
         return navigate("/dashboard");
       }
 
-      if (response.meta.requestStatus === "rejected") {
-        console.log(response.payload.message);
-
-        setLoading(false);
-        notify("There's something wrong");
-      }
+      setLoading(false);
+      notifyError(response.payload, "Unable to change password.");
     } catch (error) {
       setLoading(false);
-      notify("An unexpected error occurred.");
+      notifyError(error, "An unexpected error occurred.");
     }
   };
 
   return (
-    <div className="flex items-center justify-center mt-5  ">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg ">
-        <h1 className="text-2xl font-bold text-center">Change Password</h1>
+    <div className="mx-auto max-w-xl">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="mb-6 text-center">
+          <h1 className="text-2xl font-bold text-center">Change Password</h1>
+          <p className="mt-2 text-sm text-gray-500">
+            Update your password to keep your account secure.
+          </p>
+        </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Old Password Field */}
           <div>
             <label
               htmlFor="oldPassword"
@@ -101,16 +120,16 @@ const Profile = () => {
             >
               Old Password
             </label>
-            <input
+            <Input
               type="password"
               id="oldPassword"
-              // value={formValue.oldPassword}
+              name="oldPassword"
+              value={formValue.oldPassword}
               onChange={handleChange}
-              className={`mt-1 block w-full px-3 py-2 border  rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+              className="mt-1"
             />
           </div>
 
-          {/* New Password Field */}
           <div>
             <label
               htmlFor="newPassword"
@@ -118,25 +137,40 @@ const Profile = () => {
             >
               New Password
             </label>
-            <input
+            <Input
               type="password"
               id="newPassword"
-              // value={formValue.newPassword}
+              name="newPassword"
+              value={formValue.newPassword}
               onChange={handleChange}
-              className={`mt-1 block w-full px-3 py-2 border  rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+              className="mt-1"
             />
           </div>
 
-          {/* Confirm New Password Field */}
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Confirm New Password
+            </label>
+            <Input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formValue.confirmPassword}
+              onChange={handleChange}
+              className="mt-1"
+            />
+          </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-gray-900 text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors disabled:bg-gray-400"
-            disabled={loading}
-          >
+          {passwordError && (
+            <p className="text-sm text-red-600">{passwordError}</p>
+          )}
+
+          <Button type="submit" className="w-full" disabled={isDisabled}>
             {loading ? "Changing..." : "Change Password"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

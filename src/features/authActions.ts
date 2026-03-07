@@ -25,6 +25,25 @@ interface VerifyEmailData {
   email?: string;
 }
 
+export interface AuthErrorPayload {
+  message: string;
+  raw?: unknown;
+}
+
+export interface AuthUser {
+  _id?: string;
+  id?: string;
+  email?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+export interface AuthResponse {
+  message?: string;
+  user?: AuthUser;
+  [key: string]: unknown;
+}
+
 const getErrorMessage = (error: any) => {
   const data = error?.response?.data;
   if (typeof data === "string") return data;
@@ -32,6 +51,11 @@ const getErrorMessage = (error: any) => {
   if (data?.error) return data.error;
   return error?.message ?? "Request failed";
 };
+
+const toRejectedPayload = (error: any): AuthErrorPayload => ({
+  message: getErrorMessage(error),
+  raw: error?.response?.data,
+});
 
 interface RegisterData {
   name: string;
@@ -50,13 +74,10 @@ export const UserLogin = createAsyncThunk(
   "user/login",
   async (data: LoginData, { rejectWithValue }) => {
     try {
-      console.log("what about here");
       const response = await api.post(`/user/auth/login`, data);
-      console.log(response, "response from redux");
       return response.data;
     } catch (error: any) {
-      console.log(error);
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
   },
 );
@@ -69,7 +90,7 @@ export const UserSendOTP = createAsyncThunk(
       const response = await api.post(`/user/auth/login-otp`, data);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
   },
 );
@@ -82,7 +103,7 @@ export const UserForgetPassword = createAsyncThunk(
       const response = await api.post(`/user/auth/forgot-password`, data);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
   },
 );
@@ -95,7 +116,7 @@ export const UserResetPassword = createAsyncThunk(
       const response = await api.post(`/user/auth/reset-password`, data);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
   },
 );
@@ -132,6 +153,23 @@ export const UserVerifyEmail = createAsyncThunk(
 // Logout Action
 export const authLogout = createAction("user/logout");
 
+export const UserLogout = createAsyncThunk(
+  "user/logout-request",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/user/auth/logout`);
+      return response.data;
+    } catch (error: any) {
+      try {
+        const response = await api.get(`/user/auth/logout`);
+        return response.data;
+      } catch (fallbackError: any) {
+        return rejectWithValue(toRejectedPayload(fallbackError));
+      }
+    }
+  },
+);
+
 // User Register Thunk
 export const UserRegister = createAsyncThunk(
   "user/register",
@@ -140,11 +178,7 @@ export const UserRegister = createAsyncThunk(
       const response = await api.post(`/user/auth/register`, data);
       return response.data;
     } catch (error: any) {
-      if (error.response && error.response.data.message) {
-        return rejectWithValue(error.response.data.message);
-      } else {
-        return rejectWithValue(error.message);
-      }
+      return rejectWithValue(toRejectedPayload(error));
     }
   },
 );
@@ -161,7 +195,12 @@ export const UserChangePassword = createAsyncThunk(
       );
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      try {
+        const response = await api.post(`/user/auth/change-password`, data);
+        return response.data;
+      } catch (fallbackError: any) {
+        return rejectWithValue(toRejectedPayload(fallbackError));
+      }
     }
   },
 );
@@ -173,7 +212,7 @@ export const CheckSession = createAsyncThunk(
       const response = await api.get(`/user/auth/get-session`);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
   },
 );

@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Search, Filter, Plus, FileText } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { DeleteConfirmationModal } from "../components/blog/DeleteConfirmationModal";
-import toast from "react-hot-toast";
 import { DeleteBlog, SearchFilterBlogs } from "../features/blogActions";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../features/store";
 import { Input } from "../components/ui/Input";
+import { notifyError, notifySuccess } from "../lib/toast";
 
 export function BlogListPage() {
   const navigate = useNavigate();
@@ -67,13 +67,15 @@ export function BlogListPage() {
   const handleDeleteModal = (id: any) => {
     const currentCategory = selectedBlog?.category;
     dispatch(DeleteBlog({ _id: id })).then((response) => {
-      if (response.meta.requestStatus === "fulfilled") {
-        toast.success(
+      if (DeleteBlog.fulfilled.match(response)) {
+        notifySuccess(
+          response.payload,
           `${currentCategory === "blog" ? "Blog" : "News"} deleted successfully!`,
         );
         setSearchParams((prev) => ({ ...prev, page: 1 }));
       } else {
-        toast.error(
+        notifyError(
+          response.payload,
           `Failed to delete ${currentCategory === "blog" ? "Blog" : "News"}`,
         );
       }

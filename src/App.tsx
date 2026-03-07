@@ -3,7 +3,6 @@ import {
   createBrowserRouter,
   Navigate,
 } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { LoginPage } from "./components/auth/LoginPage";
 import { MainLayout } from "./components/layout/MainLayout";
 import Error from "./pages/Error";
@@ -16,25 +15,33 @@ import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import { useEffect } from "react";
 import { CheckSession } from "./features/authActions.ts";
-import { useAppDispatch } from "./features/hooks";
+import { useAppDispatch, useAppSelector } from "./features/hooks";
 import { RegisterPage } from "./components/auth/RegisterPage";
 import VerifyEmail from "./pages/VerifyEmail";
+import { Toaster } from "react-hot-toast";
 
 // Route Guard Component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    //dispatch check session if the state of isAuthenticated is set to true
-
-    dispatch(CheckSession());
-  }, [dispatch]);
-  const isAuthenticated = useSelector(
-    (state: any) => state.auth.isAuthenticated,
+  const { isAuthenticated, loading, sessionChecked } = useAppSelector(
+    (state) => state.auth,
   );
 
+  useEffect(() => {
+    if (!sessionChecked) {
+      dispatch(CheckSession());
+    }
+  }, [dispatch, sessionChecked]);
+
+  if (!sessionChecked || loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-500">
+        Checking session...
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
-    // Redirect to login page if not authenticated
     return <Navigate to="/login" replace />;
   }
 
@@ -42,12 +49,19 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 };
 
 const PublicRoute = ({ children }: { children: JSX.Element }) => {
-  const isAuthenticated = useSelector(
-    (state: any) => state.auth.isAuthenticated,
+  const { isAuthenticated, loading, sessionChecked } = useAppSelector(
+    (state) => state.auth,
   );
 
+  if (!sessionChecked && loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-500">
+        Loading...
+      </div>
+    );
+  }
+
   if (isAuthenticated) {
-    // Redirect to dashboard if authenticated
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -145,5 +159,20 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: "text-sm font-medium",
+          style: {
+            borderRadius: "8px",
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
+    </>
+  );
 }

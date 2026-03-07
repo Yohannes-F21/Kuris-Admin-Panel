@@ -2,6 +2,19 @@
 import api from "../axios";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
+const getErrorMessage = (error: any) => {
+  const data = error?.response?.data;
+  if (typeof data === "string") return data;
+  if (data?.message) return data.message;
+  if (data?.error) return data.error;
+  return error?.message ?? "Request failed";
+};
+
+const toRejectedPayload = (error: any) => ({
+  message: getErrorMessage(error),
+  raw: error?.response?.data,
+});
+
 // Define types for the data being passed in each thunk
 // interface CreateBlogData {
 //   title: string;
@@ -41,13 +54,11 @@ export const CreateBlog = createAsyncThunk(
         },
         withCredentials: true,
       });
-      console.log(response, "response from redux");
       return response.data;
     } catch (error: any) {
-      console.log(error);
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
-  }
+  },
 );
 
 // Search & Filter Blogs
@@ -79,9 +90,9 @@ export const SearchFilterBlogs = createAsyncThunk(
       });
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
-  }
+  },
 );
 
 // Update blog
@@ -92,9 +103,9 @@ export const UpdateBlog = createAsyncThunk(
       const response = await api.put(`/blogs/${_id}`, formData);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
-  }
+  },
 );
 
 // Get Single Blog
@@ -105,9 +116,9 @@ export const GetBlog = createAsyncThunk(
       const response = await api.get(`/blogs/${data._id}`);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
-  }
+  },
 );
 
 // Delete Blog
@@ -118,7 +129,7 @@ export const DeleteBlog = createAsyncThunk(
       const response = await api.delete(`/blogs/${data._id}`);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(toRejectedPayload(error));
     }
-  }
+  },
 );
