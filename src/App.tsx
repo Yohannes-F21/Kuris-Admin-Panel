@@ -82,6 +82,9 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <Navigate to="/dashboard" replace />,
+      },
+      {
         path: "/dashboard",
         element: <DashboardPage />,
       },
@@ -103,15 +106,6 @@ const router = createBrowserRouter([
         element: <Profile />,
       },
     ],
-  },
-  {
-    path: "/",
-    element: (
-      <PublicRoute>
-        <LoginPage />
-      </PublicRoute>
-    ),
-    errorElement: <Error />,
   },
   {
     path: "/login",

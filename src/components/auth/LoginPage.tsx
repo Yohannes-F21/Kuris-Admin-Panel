@@ -22,7 +22,7 @@ export const LoginPage: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -48,7 +48,7 @@ export const LoginPage: React.FC = () => {
         if (UserLogin.fulfilled.match(response)) {
           notifySuccess(response.payload, "Login successful.");
           setLoading(false);
-          return navigate("/dashboard");
+          return navigate("/dashboard", { replace: true });
         }
 
         if (UserLogin.rejected.match(response)) {
